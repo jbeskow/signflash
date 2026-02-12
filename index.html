@@ -663,8 +663,14 @@ video {
     }
   }
 
+  const isTouch = "ontouchstart" in window;
+
   function scrollToTop() {
     window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function focusInput() {
+    if (!isTouch) answerInput.focus();
   }
 
   function showFeedback(isCorrect, correctWord, streak, justMastered) {
@@ -731,6 +737,7 @@ video {
     video.play().catch(() => {});
 
     scrollToTop();
+    focusInput();
   }
 
   // --- Progress display ---
