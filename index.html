@@ -90,6 +90,91 @@ body {
 .settings-item:hover { background: rgba(255,255,255,0.05); }
 .settings-item.danger { color: #e74c3c; }
 
+.stats-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: #1a1a2e;
+  z-index: 100;
+  flex-direction: column;
+}
+
+.stats-overlay.open {
+  display: flex;
+}
+
+.stats-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: #16213e;
+  border-bottom: 1px solid #0f3460;
+}
+
+.stats-header h2 {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.btn-close-stats {
+  background: none;
+  border: none;
+  color: #888;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 4px 8px;
+}
+
+.btn-close-stats:hover { color: #ccc; }
+
+.stats-list {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 8px 0;
+}
+
+.stats-section-title {
+  padding: 10px 16px 4px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.stats-section-title.mastered { color: #4ecca3; }
+.stats-section-title.learning { color: #f0c040; }
+
+.stats-row {
+  display: flex;
+  align-items: center;
+  padding: 8px 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+
+.stats-word {
+  flex: 1;
+  font-size: 16px;
+}
+
+.stats-counts {
+  display: flex;
+  gap: 12px;
+  font-size: 13px;
+}
+
+.stats-correct { color: #4ecca3; }
+.stats-incorrect { color: #e74c3c; }
+.stats-assisted { color: #f0c040; }
+
+.stats-empty {
+  padding: 24px 16px;
+  text-align: center;
+  color: #555;
+  font-size: 14px;
+}
+
 .progress-stats {
   display: flex;
   justify-content: center;
@@ -326,6 +411,7 @@ video {
     <div class="settings-wrap">
       <button class="btn-settings" id="btn-settings" title="Settings">&#x2699;</button>
       <div class="settings-menu" id="settings-menu">
+        <button class="settings-item" id="btn-show-stats">Statistik</button>
         <button class="settings-item danger" id="btn-reset-progress">Nollställ framsteg</button>
       </div>
     </div>
@@ -361,6 +447,14 @@ video {
   <div class="feedback" id="feedback"></div>
 
   <div class="keyboard-hint">Enter = svara &middot; Mellanslag = spela om (när textfältet inte är fokuserat)</div>
+</div>
+
+<div class="stats-overlay" id="stats-overlay">
+  <div class="stats-header">
+    <h2>Statistik</h2>
+    <button class="btn-close-stats" id="btn-close-stats">&times;</button>
+  </div>
+  <div class="stats-list" id="stats-list"></div>
 </div>
 
 <script src="wordlist.js"></script>
@@ -677,6 +771,65 @@ video {
       updateProgressDisplay();
       nextRound();
     }
+  });
+
+  // --- Stats overlay ---
+
+  const statsOverlay = document.getElementById("stats-overlay");
+  const statsList = document.getElementById("stats-list");
+  const btnShowStats = document.getElementById("btn-show-stats");
+  const btnCloseStats = document.getElementById("btn-close-stats");
+
+  function renderStats() {
+    const progress = loadProgress();
+    const cats = categorize(progress);
+
+    const mastered = cats.mastered.map(i => ({ word: i.word, ...getStats(i.word, progress) }));
+    const inProgress = [...cats.struggling, ...cats.assistedOnly, ...cats.learning]
+      .map(i => ({ word: i.word, ...getStats(i.word, progress) }));
+
+    mastered.sort((a, b) => a.word.localeCompare(b.word, "sv"));
+    inProgress.sort((a, b) => a.word.localeCompare(b.word, "sv"));
+
+    let html = "";
+
+    html += '<div class="stats-section-title mastered">Mastered (' + mastered.length + ')</div>';
+    if (mastered.length === 0) {
+      html += '<div class="stats-empty">Inga ord mastrade ännu</div>';
+    }
+    for (const s of mastered) {
+      html += statsRowHtml(s);
+    }
+
+    html += '<div class="stats-section-title learning">Learning (' + inProgress.length + ')</div>';
+    if (inProgress.length === 0) {
+      html += '<div class="stats-empty">Inga ord påbörjade ännu</div>';
+    }
+    for (const s of inProgress) {
+      html += statsRowHtml(s);
+    }
+
+    statsList.innerHTML = html;
+  }
+
+  function statsRowHtml(s) {
+    return '<div class="stats-row">'
+      + '<span class="stats-word">' + escapeHtml(s.word) + '</span>'
+      + '<div class="stats-counts">'
+      + '<span class="stats-correct">' + s.correct + ' &#x2713;</span>'
+      + '<span class="stats-incorrect">' + s.incorrect + ' &#x2717;</span>'
+      + (s.assisted ? '<span class="stats-assisted">' + s.assisted + ' ?</span>' : '')
+      + '</div></div>';
+  }
+
+  btnShowStats.addEventListener("click", () => {
+    settingsMenu.classList.remove("open");
+    renderStats();
+    statsOverlay.classList.add("open");
+  });
+
+  btnCloseStats.addEventListener("click", () => {
+    statsOverlay.classList.remove("open");
   });
 
   // --- Event listeners ---
