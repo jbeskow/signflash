@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SignFlash</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: #1a1a2e;
+  color: #e0e0e0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.progress-bar-container {
+  width: 100%;
+  background: #16213e;
+  padding: 8px 16px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.top-row {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+
+.settings-wrap {
+  position: absolute;
+  right: 0;
+}
+
+.btn-settings {
+  background: none;
+  border: none;
+  color: #888;
+  font-size: 18px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.btn-settings:hover { color: #ccc; background: rgba(255,255,255,0.05); }
+
+.settings-menu {
+  display: none;
+  position: absolute;
+  right: 0;
+  top: 100%;
+  margin-top: 4px;
+  background: #16213e;
+  border: 1px solid #0f3460;
+  border-radius: 8px;
+  padding: 4px 0;
+  min-width: 180px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+  z-index: 20;
+}
+
+.settings-menu.open { display: block; }
+
+.settings-item {
+  display: block;
+  width: 100%;
+  padding: 10px 16px;
+  background: none;
+  border: none;
+  color: #e0e0e0;
+  font-size: 14px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.settings-item:hover { background: rgba(255,255,255,0.05); }
+.settings-item.danger { color: #e74c3c; }
+
+.progress-stats {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  font-size: 13px;
+  margin-bottom: 6px;
+  flex-wrap: wrap;
+}
+
+.progress-stats span { opacity: 0.85; }
+.stat-mastered { color: #4ecca3; }
+.stat-learning { color: #f0c040; }
+.stat-unseen { color: #888; }
+
+.progress-track {
+  width: 100%;
+  max-width: 500px;
+  height: 6px;
+  background: #0f3460;
+  border-radius: 3px;
+  overflow: hidden;
+  margin: 0 auto;
+  display: flex;
+}
+
+.progress-fill-mastered {
+  background: #4ecca3;
+  height: 100%;
+  transition: width 0.4s;
+}
+
+.progress-fill-learning {
+  background: #f0c040;
+  height: 100%;
+  transition: width 0.4s;
+}
+
+.app {
+  width: 100%;
+  max-width: 500px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  flex: 1;
+}
+
+.video-container {
+  width: 100%;
+  background: #000;
+  border-radius: 12px;
+  overflow: hidden;
+  position: relative;
+}
+
+video {
+  width: 100%;
+  display: block;
+}
+
+.video-controls {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  display: flex;
+  gap: 6px;
+}
+
+.btn-icon {
+  background: rgba(0,0,0,0.6);
+  border: none;
+  color: #fff;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(4px);
+}
+
+.btn-icon:hover { background: rgba(0,0,0,0.8); }
+
+.input-row {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+}
+
+#answer-input {
+  flex: 1;
+  padding: 12px 16px;
+  font-size: 18px;
+  border: 2px solid #0f3460;
+  border-radius: 8px;
+  background: #16213e;
+  color: #e0e0e0;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+#answer-input:focus { border-color: #4ecca3; }
+#answer-input::placeholder { color: #555; }
+
+.btn {
+  padding: 12px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.2s, transform 0.1s;
+}
+
+.btn:active { transform: scale(0.97); }
+
+.btn-submit {
+  background: #4ecca3;
+  color: #1a1a2e;
+}
+
+.btn-submit:hover { background: #3dbb94; }
+
+.btn-alt {
+  background: #0f3460;
+  color: #e0e0e0;
+  font-size: 14px;
+  padding: 12px 14px;
+}
+
+.btn-alt:hover { background: #1a4a7a; }
+
+.btn-skip {
+  background: transparent;
+  color: #888;
+  font-size: 14px;
+  padding: 8px 16px;
+  border: 1px solid #333;
+}
+
+.btn-skip:hover { color: #bbb; border-color: #555; }
+
+.action-row {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+  justify-content: center;
+}
+
+.alternatives {
+  display: none;
+  width: 100%;
+  gap: 8px;
+}
+
+.alternatives.visible {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
+.alt-btn {
+  padding: 10px;
+  border: 2px solid #0f3460;
+  border-radius: 8px;
+  background: #16213e;
+  color: #e0e0e0;
+  font-size: 15px;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.alt-btn:hover {
+  border-color: #4ecca3;
+  background: #1a3a5e;
+}
+
+.feedback {
+  width: 100%;
+  padding: 16px;
+  border-radius: 10px;
+  text-align: center;
+  font-size: 18px;
+  font-weight: 600;
+  display: none;
+}
+
+.feedback.correct {
+  display: block;
+  background: rgba(78, 204, 163, 0.15);
+  color: #4ecca3;
+  border: 2px solid #4ecca3;
+}
+
+.feedback.incorrect {
+  display: block;
+  background: rgba(231, 76, 60, 0.15);
+  color: #e74c3c;
+  border: 2px solid #e74c3c;
+}
+
+.feedback .correct-answer {
+  margin-top: 6px;
+  font-size: 22px;
+  color: #f0c040;
+}
+
+.keyboard-hint {
+  font-size: 12px;
+  color: #555;
+  text-align: center;
+}
+
+@media (max-width: 520px) {
+  .app { padding: 10px; gap: 12px; }
+  #answer-input { font-size: 16px; padding: 10px 12px; }
+  .btn { padding: 10px 14px; font-size: 14px; }
+  .btn-alt { padding: 10px 10px; font-size: 13px; }
+  .progress-stats { font-size: 12px; gap: 12px; }
+}
+</style>
+</head>
+<body>
+
+<div class="progress-bar-container">
+  <div class="top-row">
+    <div class="progress-stats">
+      <span class="stat-mastered" id="stat-mastered">Mastered: 0</span>
+      <span class="stat-learning" id="stat-learning">Learning: 0</span>
+      <span class="stat-unseen" id="stat-unseen">Unseen: 0</span>
+    </div>
+    <div class="settings-wrap">
+      <button class="btn-settings" id="btn-settings" title="Settings">&#x2699;</button>
+      <div class="settings-menu" id="settings-menu">
+        <button class="settings-item danger" id="btn-reset-progress">Nollställ framsteg</button>
+      </div>
+    </div>
+  </div>
+  <div class="progress-track">
+    <div class="progress-fill-mastered" id="progress-mastered"></div>
+    <div class="progress-fill-learning" id="progress-learning"></div>
+  </div>
+</div>
+
+<div class="app">
+  <div class="video-container">
+    <video id="sign-video" autoplay loop muted playsinline>
+      <source id="video-source" src="" type="video/mp4">
+    </video>
+    <div class="video-controls">
+      <button class="btn-icon" id="btn-replay" title="Replay">&#x21bb;</button>
+    </div>
+  </div>
+
+  <div class="input-row">
+    <input type="text" id="answer-input" placeholder="Skriv ordet..." autocomplete="off" autocapitalize="none" spellcheck="false">
+    <button class="btn btn-submit" id="btn-submit">OK</button>
+    <button class="btn btn-alt" id="btn-show-alt">?</button>
+  </div>
+
+  <div class="alternatives" id="alternatives"></div>
+
+  <div class="action-row">
+    <button class="btn btn-skip" id="btn-skip">Hoppa över</button>
+  </div>
+
+  <div class="feedback" id="feedback"></div>
+
+  <div class="keyboard-hint">Enter = svara &middot; Mellanslag = spela om (när textfältet inte är fokuserat)</div>
+</div>
+
+<script src="wordlist.js"></script>
+<script>
+(function() {
+  "use strict";
+
+  const STORAGE_KEY = "signflash_progress";
+  const MASTERY_CORRECT = 3;
+  const MASTERY_ACCURACY = 0.6;
+  const FEEDBACK_DELAY = 1800;
+
+  const video = document.getElementById("sign-video");
+  const videoSource = document.getElementById("video-source");
+  const answerInput = document.getElementById("answer-input");
+  const btnSubmit = document.getElementById("btn-submit");
+  const btnShowAlt = document.getElementById("btn-show-alt");
+  const btnSkip = document.getElementById("btn-skip");
+  const btnReplay = document.getElementById("btn-replay");
+  const alternativesDiv = document.getElementById("alternatives");
+  const feedbackDiv = document.getElementById("feedback");
+
+  let currentItem = null;
+  let previousWord = null;
+  let usedAlternatives = false;
+  let waitingForNext = false;
+
+  // --- Progress persistence ---
+
+  function loadProgress() {
+    try {
+      return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
+    } catch { return {}; }
+  }
+
+  function saveProgress(progress) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
+  }
+
+  function getStats(word, progress) {
+    return progress[word] || { correct: 0, incorrect: 0, assisted: 0, lastSeen: 0 };
+  }
+
+  // --- Word categorization ---
+
+  function categorize(progress) {
+    const unseen = [], struggling = [], assistedOnly = [], learning = [], mastered = [];
+
+    for (const item of WORDLIST) {
+      const s = getStats(item.word, progress);
+      const total = s.correct + s.incorrect + s.assisted;
+
+      if (total === 0) {
+        unseen.push(item);
+        continue;
+      }
+
+      const unassistedTotal = s.correct + s.incorrect;
+      const unassistedAcc = unassistedTotal > 0 ? s.correct / unassistedTotal : 0;
+
+      if (s.correct >= MASTERY_CORRECT && unassistedAcc >= MASTERY_ACCURACY) {
+        mastered.push(item);
+      } else if (unassistedTotal === 0 && s.assisted > 0) {
+        assistedOnly.push(item);
+      } else if (unassistedAcc < 0.5) {
+        struggling.push(item);
+      } else {
+        learning.push(item);
+      }
+    }
+
+    return { unseen, struggling, assistedOnly, learning, mastered };
+  }
+
+  // --- Word selection ---
+
+  function pickFromBucket(bucket, progress) {
+    if (bucket.length === 0) return null;
+    // Sort by lastSeen ascending (least recently seen first)
+    bucket.sort((a, b) => {
+      const sa = getStats(a.word, progress).lastSeen;
+      const sb = getStats(b.word, progress).lastSeen;
+      return sa - sb;
+    });
+    // Pick from the least-recently-seen quarter to add some randomness
+    const pool = bucket.slice(0, Math.max(3, Math.ceil(bucket.length / 4)));
+    return pool[Math.floor(Math.random() * pool.length)];
+  }
+
+  function selectWord() {
+    const progress = loadProgress();
+    const cats = categorize(progress);
+
+    // Build weighted selection
+    const buckets = [
+      { items: cats.struggling, weight: 35 },
+      { items: cats.assistedOnly, weight: 25 },
+      { items: cats.unseen, weight: 25 },
+      { items: cats.learning, weight: 10 },
+      { items: cats.mastered, weight: 5 },
+    ];
+
+    // Filter out empty buckets and previous word
+    const filterPrev = (arr) => arr.filter(i => i.word !== previousWord);
+
+    let totalWeight = 0;
+    const available = [];
+    for (const b of buckets) {
+      const filtered = filterPrev(b.items);
+      if (filtered.length > 0) {
+        available.push({ items: filtered, weight: b.weight });
+        totalWeight += b.weight;
+      }
+    }
+
+    if (available.length === 0) {
+      // All words are the previous word (only 1 word?) - just pick anything
+      return WORDLIST[Math.floor(Math.random() * WORDLIST.length)];
+    }
+
+    let roll = Math.random() * totalWeight;
+    for (const b of available) {
+      roll -= b.weight;
+      if (roll <= 0) {
+        return pickFromBucket(b.items, progress);
+      }
+    }
+
+    return pickFromBucket(available[available.length - 1].items, progress);
+  }
+
+  // --- Alternatives ---
+
+  function getDistractors(correctWord, count) {
+    const others = WORDLIST.filter(i => i.word !== correctWord);
+    const shuffled = others.slice().sort(() => Math.random() - 0.5);
+    return shuffled.slice(0, count).map(i => i.word);
+  }
+
+  function showAlternatives() {
+    usedAlternatives = true;
+    const correct = currentItem.word;
+    const distractors = getDistractors(correct, 3);
+    const options = [correct, ...distractors].sort(() => Math.random() - 0.5);
+
+    alternativesDiv.innerHTML = "";
+    for (const opt of options) {
+      const btn = document.createElement("button");
+      btn.className = "alt-btn";
+      btn.textContent = opt;
+      btn.addEventListener("click", () => {
+        answerInput.value = opt;
+        checkAnswer();
+      });
+      alternativesDiv.appendChild(btn);
+    }
+    alternativesDiv.classList.add("visible");
+    btnShowAlt.style.display = "none";
+  }
+
+  // --- Answer checking ---
+
+  let pendingIncorrect = false;
+
+  function checkAnswer() {
+    if (waitingForNext) return;
+
+    const answer = answerInput.value.trim().toLowerCase();
+    if (!answer) return;
+
+    const correct = currentItem.word.toLowerCase();
+    const isCorrect = answer === correct;
+
+    if (isCorrect) {
+      const progress = loadProgress();
+      const stats = getStats(currentItem.word, progress);
+      if (!usedAlternatives && !pendingIncorrect) {
+        stats.correct++;
+      } else {
+        stats.assisted++;
+      }
+      stats.lastSeen = Date.now();
+      progress[currentItem.word] = stats;
+      saveProgress(progress);
+      pendingIncorrect = false;
+      showFeedback(true, currentItem.word);
+      updateProgressDisplay();
+    } else {
+      // Record the incorrect attempt and show alternatives
+      const progress = loadProgress();
+      const stats = getStats(currentItem.word, progress);
+      stats.incorrect++;
+      stats.lastSeen = Date.now();
+      progress[currentItem.word] = stats;
+      saveProgress(progress);
+      pendingIncorrect = true;
+      updateProgressDisplay();
+      showAlternatives();
+    }
+  }
+
+  function showFeedback(isCorrect, correctWord) {
+    waitingForNext = true;
+    answerInput.disabled = true;
+    btnSubmit.disabled = true;
+    btnShowAlt.disabled = true;
+    btnSkip.disabled = true;
+
+    feedbackDiv.className = "feedback";
+
+    if (isCorrect) {
+      feedbackDiv.classList.add("correct");
+      feedbackDiv.textContent = "Rätt!";
+    } else {
+      feedbackDiv.classList.add("incorrect");
+      feedbackDiv.innerHTML = 'Fel! <div class="correct-answer">' + escapeHtml(correctWord) + "</div>";
+    }
+
+    setTimeout(nextRound, FEEDBACK_DELAY);
+  }
+
+  function escapeHtml(s) {
+    const d = document.createElement("div");
+    d.textContent = s;
+    return d.innerHTML;
+  }
+
+  // --- Round management ---
+
+  function nextRound() {
+    waitingForNext = false;
+    usedAlternatives = false;
+    pendingIncorrect = false;
+
+    feedbackDiv.className = "feedback";
+    feedbackDiv.innerHTML = "";
+    alternativesDiv.classList.remove("visible");
+    alternativesDiv.innerHTML = "";
+    btnShowAlt.style.display = "";
+
+    answerInput.value = "";
+    answerInput.disabled = false;
+    btnSubmit.disabled = false;
+    btnShowAlt.disabled = false;
+    btnSkip.disabled = false;
+
+    if (currentItem) previousWord = currentItem.word;
+    currentItem = selectWord();
+
+    videoSource.src = "mp4/" + currentItem.video;
+    video.load();
+    video.play().catch(() => {});
+
+    answerInput.focus();
+  }
+
+  function skip() {
+    if (waitingForNext) return;
+
+    const progress = loadProgress();
+    const stats = getStats(currentItem.word, progress);
+    stats.lastSeen = Date.now();
+    progress[currentItem.word] = stats;
+    saveProgress(progress);
+
+    nextRound();
+  }
+
+  // --- Progress display ---
+
+  function updateProgressDisplay() {
+    const progress = loadProgress();
+    const cats = categorize(progress);
+    const total = WORDLIST.length;
+
+    document.getElementById("stat-mastered").textContent = "Mastered: " + cats.mastered.length;
+    document.getElementById("stat-learning").textContent =
+      "Learning: " + (cats.struggling.length + cats.assistedOnly.length + cats.learning.length);
+    document.getElementById("stat-unseen").textContent = "Unseen: " + cats.unseen.length;
+
+    const masteredPct = (cats.mastered.length / total) * 100;
+    const learningPct = ((total - cats.mastered.length - cats.unseen.length) / total) * 100;
+
+    document.getElementById("progress-mastered").style.width = masteredPct + "%";
+    document.getElementById("progress-learning").style.width = learningPct + "%";
+  }
+
+  // --- Settings menu ---
+
+  const btnSettings = document.getElementById("btn-settings");
+  const settingsMenu = document.getElementById("settings-menu");
+  const btnResetProgress = document.getElementById("btn-reset-progress");
+
+  btnSettings.addEventListener("click", (e) => {
+    e.stopPropagation();
+    settingsMenu.classList.toggle("open");
+  });
+
+  document.addEventListener("click", () => {
+    settingsMenu.classList.remove("open");
+  });
+
+  btnResetProgress.addEventListener("click", () => {
+    if (confirm("Nollställ alla framsteg? Detta kan inte ångras.")) {
+      localStorage.removeItem(STORAGE_KEY);
+      updateProgressDisplay();
+      nextRound();
+    }
+  });
+
+  // --- Event listeners ---
+
+  btnSubmit.addEventListener("click", checkAnswer);
+  btnShowAlt.addEventListener("click", showAlternatives);
+  btnSkip.addEventListener("click", skip);
+  btnReplay.addEventListener("click", () => {
+    video.currentTime = 0;
+    video.play().catch(() => {});
+  });
+
+  answerInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      checkAnswer();
+    }
+  });
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === " " && document.activeElement !== answerInput) {
+      e.preventDefault();
+      video.currentTime = 0;
+      video.play().catch(() => {});
+    }
+  });
+
+  // --- Init ---
+  updateProgressDisplay();
+  nextRound();
+
+})();
+</script>
+</body>
+</html>
