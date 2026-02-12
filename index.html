@@ -310,23 +310,6 @@ video {
 
 .btn-alt:hover { background: #1a4a7a; }
 
-.btn-skip {
-  background: transparent;
-  color: #888;
-  font-size: 14px;
-  padding: 8px 16px;
-  border: 1px solid #333;
-}
-
-.btn-skip:hover { color: #bbb; border-color: #555; }
-
-.action-row {
-  display: flex;
-  gap: 8px;
-  width: 100%;
-  justify-content: center;
-}
-
 .alternatives {
   display: none;
   width: 100%;
@@ -466,13 +449,7 @@ video {
 
   <div class="alternatives" id="alternatives"></div>
 
-  <div class="action-row">
-    <button class="btn btn-skip" id="btn-skip">Hoppa över</button>
-  </div>
-
   <div class="feedback" id="feedback"></div>
-
-  <div class="keyboard-hint">Enter = svara &middot; Mellanslag = spela om (när textfältet inte är fokuserat)</div>
 </div>
 
 <div class="stats-overlay" id="stats-overlay">
@@ -498,7 +475,6 @@ video {
   const answerInput = document.getElementById("answer-input");
   const btnSubmit = document.getElementById("btn-submit");
   const btnShowAlt = document.getElementById("btn-show-alt");
-  const btnSkip = document.getElementById("btn-skip");
   const btnReplay = document.getElementById("btn-replay");
   const alternativesDiv = document.getElementById("alternatives");
   const feedbackDiv = document.getElementById("feedback");
@@ -697,7 +673,6 @@ video {
     answerInput.disabled = true;
     btnSubmit.disabled = true;
     btnShowAlt.disabled = true;
-    btnSkip.disabled = true;
 
     feedbackDiv.className = "feedback";
 
@@ -747,7 +722,6 @@ video {
     answerInput.disabled = false;
     btnSubmit.disabled = false;
     btnShowAlt.disabled = false;
-    btnSkip.disabled = false;
 
     if (currentItem) previousWord = currentItem.word;
     currentItem = selectWord();
@@ -757,18 +731,6 @@ video {
     video.play().catch(() => {});
 
     scrollToTop();
-  }
-
-  function skip() {
-    if (waitingForNext) return;
-
-    const progress = loadProgress();
-    const stats = getStats(currentItem.word, progress);
-    stats.lastSeen = Date.now();
-    progress[currentItem.word] = stats;
-    saveProgress(progress);
-
-    nextRound();
   }
 
   // --- Progress display ---
@@ -876,7 +838,6 @@ video {
 
   btnSubmit.addEventListener("click", checkAnswer);
   btnShowAlt.addEventListener("click", showAlternatives);
-  btnSkip.addEventListener("click", skip);
   btnReplay.addEventListener("click", () => {
     video.currentTime = 0;
     video.play().catch(() => {});
