@@ -384,6 +384,32 @@ video {
   color: #f0c040;
 }
 
+.feedback.mastered-celebration {
+  background: rgba(78, 204, 163, 0.25);
+  border-color: #f0c040;
+  animation: celebrate 0.6s ease-out;
+}
+
+.mastered-star {
+  font-size: 32px;
+  color: #f0c040;
+  margin-bottom: 4px;
+}
+
+.mastered-text {
+  margin-top: 4px;
+  font-size: 14px;
+  color: #f0c040;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+@keyframes celebrate {
+  0% { transform: scale(0.8); opacity: 0; }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
 .keyboard-hint {
   font-size: 12px;
   color: #555;
@@ -404,9 +430,9 @@ video {
 <div class="progress-bar-container">
   <div class="top-row">
     <div class="progress-stats">
-      <span class="stat-mastered" id="stat-mastered">Mastered: 0</span>
-      <span class="stat-learning" id="stat-learning">Learning: 0</span>
-      <span class="stat-unseen" id="stat-unseen">Unseen: 0</span>
+      <span class="stat-mastered" id="stat-mastered">Klara: 0</span>
+      <span class="stat-learning" id="stat-learning">Lär sig: 0</span>
+      <span class="stat-unseen" id="stat-unseen">Nya: 0</span>
     </div>
     <div class="settings-wrap">
       <button class="btn-settings" id="btn-settings" title="Settings">&#x2699;</button>
@@ -463,9 +489,9 @@ video {
   "use strict";
 
   const STORAGE_KEY = "signflash_progress";
-  const MASTERY_CORRECT = 2;
-  const MASTERY_ACCURACY = 0.6;
+  const MASTERY_STREAK = 2;
   const FEEDBACK_DELAY = 1800;
+  const MASTERY_DELAY = 2500;
 
   const video = document.getElementById("sign-video");
   const videoSource = document.getElementById("video-source");
@@ -495,7 +521,7 @@ video {
   }
 
   function getStats(word, progress) {
-    return progress[word] || { correct: 0, incorrect: 0, assisted: 0, lastSeen: 0 };
+    return progress[word] || { correct: 0, incorrect: 0, assisted: 0, streak: 0, lastSeen: 0 };
   }
 
   // --- Word categorization ---
@@ -512,14 +538,13 @@ video {
         continue;
       }
 
-      const unassistedTotal = s.correct + s.incorrect;
-      const unassistedAcc = unassistedTotal > 0 ? s.correct / unassistedTotal : 0;
+      const streak = s.streak || 0;
 
-      if (s.correct >= MASTERY_CORRECT && unassistedAcc >= MASTERY_ACCURACY) {
+      if (streak >= MASTERY_STREAK) {
         mastered.push(item);
-      } else if (unassistedTotal === 0 && s.assisted > 0) {
+      } else if (s.correct === 0 && s.incorrect === 0 && s.assisted > 0) {
         assistedOnly.push(item);
-      } else if (unassistedAcc < 0.5) {
+      } else if (s.incorrect > s.correct) {
         struggling.push(item);
       } else {
         learning.push(item);
@@ -631,22 +656,26 @@ video {
     if (isCorrect) {
       const progress = loadProgress();
       const stats = getStats(currentItem.word, progress);
-      if (!usedAlternatives && !pendingIncorrect) {
+      const unassisted = !usedAlternatives && !pendingIncorrect;
+      if (unassisted) {
         stats.correct++;
+        stats.streak = (stats.streak || 0) + 1;
       } else {
         stats.assisted++;
+        stats.streak = 0;
       }
       stats.lastSeen = Date.now();
       progress[currentItem.word] = stats;
       saveProgress(progress);
+      const justMastered = unassisted && stats.streak === MASTERY_STREAK;
       pendingIncorrect = false;
-      showFeedback(true, currentItem.word);
+      showFeedback(true, currentItem.word, stats.streak, justMastered);
       updateProgressDisplay();
     } else {
-      // Record the incorrect attempt and show alternatives
       const progress = loadProgress();
       const stats = getStats(currentItem.word, progress);
       stats.incorrect++;
+      stats.streak = 0;
       stats.lastSeen = Date.now();
       progress[currentItem.word] = stats;
       saveProgress(progress);
@@ -662,7 +691,7 @@ video {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
-  function showFeedback(isCorrect, correctWord) {
+  function showFeedback(isCorrect, correctWord, streak, justMastered) {
     waitingForNext = true;
     answerInput.blur();
     answerInput.disabled = true;
@@ -673,15 +702,26 @@ video {
     feedbackDiv.className = "feedback";
 
     if (isCorrect) {
-      feedbackDiv.classList.add("correct");
-      feedbackDiv.textContent = "Rätt!";
+      if (justMastered) {
+        feedbackDiv.classList.add("correct", "mastered-celebration");
+        feedbackDiv.innerHTML = '<div class="mastered-star">&#x2605;</div>'
+          + "Rätt! " + streak + "/" + MASTERY_STREAK
+          + '<div class="mastered-text">Mastrad!</div>';
+      } else {
+        feedbackDiv.classList.add("correct");
+        const streakInfo = streak < MASTERY_STREAK
+          ? " (" + streak + "/" + MASTERY_STREAK + ")"
+          : "";
+        feedbackDiv.textContent = "Rätt!" + streakInfo;
+      }
     } else {
       feedbackDiv.classList.add("incorrect");
       feedbackDiv.innerHTML = 'Fel! <div class="correct-answer">' + escapeHtml(correctWord) + "</div>";
     }
 
     setTimeout(scrollToTop, 100);
-    setTimeout(nextRound, FEEDBACK_DELAY);
+    const delay = justMastered ? MASTERY_DELAY : FEEDBACK_DELAY;
+    setTimeout(nextRound, delay);
   }
 
   function escapeHtml(s) {
@@ -738,10 +778,10 @@ video {
     const cats = categorize(progress);
     const total = WORDLIST.length;
 
-    document.getElementById("stat-mastered").textContent = "Mastered: " + cats.mastered.length;
+    document.getElementById("stat-mastered").textContent = "Klara: " + cats.mastered.length;
     document.getElementById("stat-learning").textContent =
-      "Learning: " + (cats.struggling.length + cats.assistedOnly.length + cats.learning.length);
-    document.getElementById("stat-unseen").textContent = "Unseen: " + cats.unseen.length;
+      "Lär sig: " + (cats.struggling.length + cats.assistedOnly.length + cats.learning.length);
+    document.getElementById("stat-unseen").textContent = "Nya: " + cats.unseen.length;
 
     const masteredPct = (cats.mastered.length / total) * 100;
     const learningPct = ((total - cats.mastered.length - cats.unseen.length) / total) * 100;
@@ -793,15 +833,15 @@ video {
 
     let html = "";
 
-    html += '<div class="stats-section-title mastered">Mastered (' + mastered.length + ')</div>';
+    html += '<div class="stats-section-title mastered">Klara (' + mastered.length + ')</div>';
     if (mastered.length === 0) {
-      html += '<div class="stats-empty">Inga ord mastrade ännu</div>';
+      html += '<div class="stats-empty">Inga ord klara ännu</div>';
     }
     for (const s of mastered) {
       html += statsRowHtml(s);
     }
 
-    html += '<div class="stats-section-title learning">Learning (' + inProgress.length + ')</div>';
+    html += '<div class="stats-section-title learning">Lär sig (' + inProgress.length + ')</div>';
     if (inProgress.length === 0) {
       html += '<div class="stats-empty">Inga ord påbörjade ännu</div>';
     }
