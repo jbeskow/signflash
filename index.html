@@ -2,8 +2,12 @@
 <html lang="sv">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
 <title>SignFlash</title>
+<link rel="manifest" href="manifest.json">
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -554,12 +558,19 @@ video {
       saveProgress(progress);
       pendingIncorrect = true;
       updateProgressDisplay();
+      answerInput.blur();
+      setTimeout(scrollToTop, 100);
       showAlternatives();
     }
   }
 
+  function scrollToTop() {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
   function showFeedback(isCorrect, correctWord) {
     waitingForNext = true;
+    answerInput.blur();
     answerInput.disabled = true;
     btnSubmit.disabled = true;
     btnShowAlt.disabled = true;
@@ -575,6 +586,7 @@ video {
       feedbackDiv.innerHTML = 'Fel! <div class="correct-answer">' + escapeHtml(correctWord) + "</div>";
     }
 
+    setTimeout(scrollToTop, 100);
     setTimeout(nextRound, FEEDBACK_DELAY);
   }
 
@@ -610,7 +622,7 @@ video {
     video.load();
     video.play().catch(() => {});
 
-    answerInput.focus();
+    scrollToTop();
   }
 
   function skip() {
