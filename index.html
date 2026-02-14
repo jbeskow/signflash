@@ -509,8 +509,9 @@ video {
   const alternativesDiv = document.getElementById("alternatives");
   const feedbackDiv = document.getElementById("feedback");
 
+  const MIN_GAP = 6;
   let currentItem = null;
-  let previousWord = null;
+  let recentWords = [];
   let usedAlternatives = false;
   let waitingForNext = false;
 
@@ -588,13 +589,14 @@ video {
       { items: cats.mastered, weight: 5 },
     ];
 
-    // Filter out empty buckets and previous word
-    const filterPrev = (arr) => arr.filter(i => i.word !== previousWord);
+    // Filter out recently shown words
+    const recentSet = new Set(recentWords);
+    const filterRecent = (arr) => arr.filter(i => !recentSet.has(i.word));
 
     let totalWeight = 0;
     const available = [];
     for (const b of buckets) {
-      const filtered = filterPrev(b.items);
+      const filtered = filterRecent(b.items);
       if (filtered.length > 0) {
         available.push({ items: filtered, weight: b.weight });
         totalWeight += b.weight;
@@ -765,7 +767,10 @@ video {
     btnSubmit.disabled = false;
     btnShowAlt.disabled = false;
 
-    if (currentItem) previousWord = currentItem.word;
+    if (currentItem) {
+      recentWords.push(currentItem.word);
+      if (recentWords.length > MIN_GAP) recentWords.shift();
+    }
     currentItem = selectWord();
 
     videoSource.src = "mp4/" + currentItem.video;
