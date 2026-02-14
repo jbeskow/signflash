@@ -90,6 +90,37 @@ body {
 .settings-item:hover { background: rgba(255,255,255,0.05); }
 .settings-item.danger { color: #e74c3c; }
 
+.streak-setting {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: default;
+}
+
+.streak-setting:hover { background: none !important; }
+
+.streak-btn {
+  background: #0f3460;
+  border: none;
+  color: #e0e0e0;
+  width: 28px;
+  height: 28px;
+  border-radius: 4px;
+  font-size: 16px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.streak-btn:hover { background: #1a4a7a; }
+
+#streak-value {
+  min-width: 16px;
+  text-align: center;
+  font-weight: 600;
+}
+
 .stats-overlay {
   display: none;
   position: fixed;
@@ -367,36 +398,24 @@ video {
   color: #f0c040;
 }
 
+.streak-stars {
+  color: #f0c040;
+  font-size: 20px;
+  letter-spacing: 2px;
+  margin-left: 4px;
+}
+
 .feedback.mastered-celebration {
-  background: rgba(78, 204, 163, 0.25);
+  background: rgba(240, 192, 64, 0.15);
   border-color: #f0c040;
+  color: #f0c040;
   animation: celebrate 0.6s ease-out;
-}
-
-.mastered-star {
-  font-size: 32px;
-  color: #f0c040;
-  margin-bottom: 4px;
-}
-
-.mastered-text {
-  margin-top: 4px;
-  font-size: 14px;
-  color: #f0c040;
-  text-transform: uppercase;
-  letter-spacing: 1px;
 }
 
 @keyframes celebrate {
   0% { transform: scale(0.8); opacity: 0; }
-  50% { transform: scale(1.05); }
+  50% { transform: scale(1.08); }
   100% { transform: scale(1); opacity: 1; }
-}
-
-.keyboard-hint {
-  font-size: 12px;
-  color: #555;
-  text-align: center;
 }
 
 @media (max-width: 520px) {
@@ -421,6 +440,11 @@ video {
       <button class="btn-settings" id="btn-settings" title="Settings">&#x2699;</button>
       <div class="settings-menu" id="settings-menu">
         <button class="settings-item" id="btn-show-stats">Statistik</button>
+        <div class="settings-item streak-setting">
+          Rätt i rad: <button class="streak-btn" id="streak-down">&#x2212;</button>
+          <span id="streak-value">3</span>
+          <button class="streak-btn" id="streak-up">+</button>
+        </div>
         <button class="settings-item danger" id="btn-reset-progress">Nollställ framsteg</button>
       </div>
     </div>
@@ -466,9 +490,15 @@ video {
   "use strict";
 
   const STORAGE_KEY = "signflash_progress";
-  const MASTERY_STREAK = 2;
+  const SETTINGS_KEY = "signflash_settings";
   const FEEDBACK_DELAY = 1800;
   const MASTERY_DELAY = 2500;
+
+  function loadSettings() {
+    try { return JSON.parse(localStorage.getItem(SETTINGS_KEY)) || {}; } catch { return {}; }
+  }
+  function saveSettings(s) { localStorage.setItem(SETTINGS_KEY, JSON.stringify(s)); }
+  function getMasteryStreak() { return loadSettings().masteryStreak || 3; }
 
   const video = document.getElementById("sign-video");
   const videoSource = document.getElementById("video-source");
@@ -516,7 +546,7 @@ video {
 
       const streak = s.streak || 0;
 
-      if (streak >= MASTERY_STREAK) {
+      if (streak >= getMasteryStreak()) {
         mastered.push(item);
       } else if (s.correct === 0 && s.incorrect === 0 && s.assisted > 0) {
         assistedOnly.push(item);
@@ -643,7 +673,7 @@ video {
       stats.lastSeen = Date.now();
       progress[currentItem.word] = stats;
       saveProgress(progress);
-      const justMastered = unassisted && stats.streak === MASTERY_STREAK;
+      const justMastered = unassisted && stats.streak === getMasteryStreak();
       pendingIncorrect = false;
       showFeedback(true, currentItem.word, stats.streak, justMastered);
       updateProgressDisplay();
@@ -673,6 +703,16 @@ video {
     if (!isTouch) answerInput.focus();
   }
 
+  function makeStars(streak) {
+    const target = getMasteryStreak();
+    const clamped = Math.min(streak, target);
+    let stars = "";
+    for (let i = 0; i < target; i++) {
+      stars += i < clamped ? "&#x2605;" : "&#x2606;";
+    }
+    return stars;
+  }
+
   function showFeedback(isCorrect, correctWord, streak, justMastered) {
     waitingForNext = true;
     answerInput.blur();
@@ -685,19 +725,15 @@ video {
     if (isCorrect) {
       if (justMastered) {
         feedbackDiv.classList.add("correct", "mastered-celebration");
-        feedbackDiv.innerHTML = '<div class="mastered-star">&#x2605;</div>'
-          + "Rätt! " + streak + "/" + MASTERY_STREAK
-          + '<div class="mastered-text">Mastrad!</div>';
       } else {
         feedbackDiv.classList.add("correct");
-        const streakInfo = streak < MASTERY_STREAK
-          ? " (" + streak + "/" + MASTERY_STREAK + ")"
-          : "";
-        feedbackDiv.textContent = "Rätt!" + streakInfo;
       }
+      feedbackDiv.innerHTML = escapeHtml(correctWord)
+        + ' <span class="streak-stars">' + makeStars(streak) + "</span>";
     } else {
       feedbackDiv.classList.add("incorrect");
-      feedbackDiv.innerHTML = 'Fel! <div class="correct-answer">' + escapeHtml(correctWord) + "</div>";
+      feedbackDiv.innerHTML = escapeHtml(correctWord)
+        + ' <span class="streak-stars">' + makeStars(0) + "</span>";
     }
 
     setTimeout(scrollToTop, 100);
@@ -772,6 +808,38 @@ video {
 
   document.addEventListener("click", () => {
     settingsMenu.classList.remove("open");
+  });
+
+  // --- Streak setting ---
+
+  const streakValueEl = document.getElementById("streak-value");
+  const streakDown = document.getElementById("streak-down");
+  const streakUp = document.getElementById("streak-up");
+
+  streakValueEl.textContent = getMasteryStreak();
+
+  streakDown.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const s = loadSettings();
+    const cur = s.masteryStreak || 3;
+    if (cur > 1) {
+      s.masteryStreak = cur - 1;
+      saveSettings(s);
+      streakValueEl.textContent = s.masteryStreak;
+      updateProgressDisplay();
+    }
+  });
+
+  streakUp.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const s = loadSettings();
+    const cur = s.masteryStreak || 3;
+    if (cur < 10) {
+      s.masteryStreak = cur + 1;
+      saveSettings(s);
+      streakValueEl.textContent = s.masteryStreak;
+      updateProgressDisplay();
+    }
   });
 
   btnResetProgress.addEventListener("click", () => {
