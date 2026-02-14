@@ -580,13 +580,12 @@ video {
     const progress = loadProgress();
     const cats = categorize(progress);
 
-    // Build weighted selection
+    // Build weighted selection (mastered words excluded)
     const buckets = [
       { items: cats.struggling, weight: 35 },
       { items: cats.assistedOnly, weight: 25 },
       { items: cats.unseen, weight: 25 },
-      { items: cats.learning, weight: 10 },
-      { items: cats.mastered, weight: 5 },
+      { items: cats.learning, weight: 15 },
     ];
 
     // Filter out recently shown words
@@ -604,7 +603,15 @@ video {
     }
 
     if (available.length === 0) {
-      // All words are the previous word (only 1 word?) - just pick anything
+      // All non-mastered filtered out by recency — relax the filter
+      const unmastered = WORDLIST.filter(i => {
+        const s = getStats(i.word, progress);
+        return (s.streak || 0) < getMasteryStreak();
+      });
+      if (unmastered.length > 0) {
+        return unmastered[Math.floor(Math.random() * unmastered.length)];
+      }
+      // Everything mastered — pick any word
       return WORDLIST[Math.floor(Math.random() * WORDLIST.length)];
     }
 
