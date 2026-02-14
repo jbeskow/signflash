@@ -418,6 +418,43 @@ video {
   100% { transform: scale(1); opacity: 1; }
 }
 
+.stat-mastered.pulse {
+  animation: counter-pulse 0.6s ease-out;
+}
+
+@keyframes counter-pulse {
+  0% { transform: scale(1); }
+  30% { transform: scale(1.4); color: #f0c040; }
+  100% { transform: scale(1); }
+}
+
+.milestone {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.5);
+  background: rgba(22, 33, 62, 0.95);
+  border: 2px solid #f0c040;
+  border-radius: 16px;
+  padding: 24px 32px;
+  text-align: center;
+  color: #f0c040;
+  font-size: 20px;
+  font-weight: 700;
+  z-index: 200;
+  opacity: 0;
+  pointer-events: none;
+  animation: milestone-pop 2.5s ease-out forwards;
+}
+
+@keyframes milestone-pop {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+  15% { opacity: 1; transform: translate(-50%, -50%) scale(1.05); }
+  25% { transform: translate(-50%, -50%) scale(1); }
+  75% { opacity: 1; }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(1); }
+}
+
 @media (max-width: 520px) {
   .app { padding: 10px; gap: 12px; }
   #answer-input { font-size: 16px; padding: 10px 12px; }
@@ -686,6 +723,14 @@ video {
       pendingIncorrect = false;
       showFeedback(true, currentItem.word, stats.streak, justMastered);
       updateProgressDisplay();
+      if (justMastered) {
+        const cats = categorize(progress);
+        const masteredCount = cats.mastered.length;
+        setTimeout(pulseCounter, 500);
+        if (masteredCount % 10 === 0) {
+          setTimeout(() => showMilestone(masteredCount), 600);
+        }
+      }
     } else {
       const progress = loadProgress();
       const stats = getStats(currentItem.word, progress);
@@ -710,6 +755,21 @@ video {
 
   function focusInput() {
     if (!isTouch) answerInput.focus();
+  }
+
+  function pulseCounter() {
+    const el = document.getElementById("stat-mastered");
+    el.classList.remove("pulse");
+    void el.offsetWidth;
+    el.classList.add("pulse");
+  }
+
+  function showMilestone(count) {
+    const el = document.createElement("div");
+    el.className = "milestone";
+    el.textContent = count + " ord klara, bra jobbat!";
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 2600);
   }
 
   function makeStars(streak) {
