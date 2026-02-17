@@ -464,6 +464,57 @@ video {
   100% { opacity: 0; transform: translate(-50%, -50%) scale(1); }
 }
 
+.mode-toggle {
+  display: flex;
+  gap: 0;
+  width: 100%;
+}
+
+.mode-btn {
+  flex: 1;
+  padding: 8px;
+  border: 2px solid #0f3460;
+  background: transparent;
+  color: #888;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.mode-btn:first-child {
+  border-radius: 8px 0 0 8px;
+  border-right: 1px solid #0f3460;
+}
+
+.mode-btn:last-child {
+  border-radius: 0 8px 8px 0;
+  border-left: 1px solid #0f3460;
+}
+
+.mode-btn.active {
+  background: #0f3460;
+  color: #e0e0e0;
+  border-color: #0f3460;
+}
+
+.mode-btn:hover:not(.active) {
+  color: #ccc;
+  background: rgba(255,255,255,0.03);
+}
+
+.phrase-text {
+  width: 100%;
+  padding: 12px 16px;
+  background: #16213e;
+  border-radius: 8px;
+  font-size: 16px;
+  line-height: 1.5;
+  color: #ccc;
+  text-align: center;
+  display: none;
+}
+
 @media (max-width: 520px) {
   .app { padding: 10px; gap: 12px; }
   #answer-input { font-size: 16px; padding: 10px 12px; }
@@ -503,6 +554,11 @@ video {
 </div>
 
 <div class="app">
+  <div class="mode-toggle">
+    <button class="mode-btn active" id="btn-mode-word">Ord</button>
+    <button class="mode-btn" id="btn-mode-phrase">Fraser</button>
+  </div>
+
   <div class="video-container">
     <video id="sign-video" autoplay loop muted playsinline>
       <source id="video-source" src="" type="video/mp4">
@@ -511,6 +567,8 @@ video {
       <button class="btn-icon" id="btn-replay" title="Replay">&#x21bb;</button>
     </div>
   </div>
+
+  <div class="phrase-text" id="phrase-text"></div>
 
   <div class="input-row">
     <input type="text" id="answer-input" placeholder="Skriv ordet..." autocomplete="off" autocapitalize="none" spellcheck="false">
@@ -543,14 +601,24 @@ video {
 </div>
 
 <script src="wordlist.js"></script>
+<script src="phrases.js"></script>
 <script>
 (function() {
   "use strict";
 
   const STORAGE_KEY = "signflash_progress";
+  const PHRASE_STORAGE_KEY = "signflash_phrase_progress";
   const SETTINGS_KEY = "signflash_settings";
   const FEEDBACK_DELAY = 1800;
   const MASTERY_DELAY = 2500;
+
+  // Build phrase lookup: word → [phrase objects]
+  const phrasesByWord = {};
+  for (const p of PHRASELIST) {
+    if (!phrasesByWord[p.word]) phrasesByWord[p.word] = [];
+    phrasesByWord[p.word].push(p);
+  }
+  const phraseWordList = Object.keys(phrasesByWord).map(w => ({ word: w }));
 
   function loadSettings() {
     try { return JSON.parse(localStorage.getItem(SETTINGS_KEY)) || {}; } catch { return {}; }
@@ -566,23 +634,52 @@ video {
   const btnReplay = document.getElementById("btn-replay");
   const alternativesDiv = document.getElementById("alternatives");
   const feedbackDiv = document.getElementById("feedback");
+  const phraseTextDiv = document.getElementById("phrase-text");
+  const btnModeWord = document.getElementById("btn-mode-word");
+  const btnModePhrase = document.getElementById("btn-mode-phrase");
 
   const MIN_GAP = 6;
   let currentItem = null;
+  let currentPhrase = null;
   let recentWords = [];
   let usedAlternatives = false;
   let waitingForNext = false;
+  let currentMode = "word";
+
+  // --- Mode ---
+
+  function getStorageKey() {
+    return currentMode === "phrase" ? PHRASE_STORAGE_KEY : STORAGE_KEY;
+  }
+
+  function getWordList() {
+    return currentMode === "phrase" ? phraseWordList : WORDLIST;
+  }
+
+  function setMode(mode) {
+    if (mode === currentMode) return;
+    currentMode = mode;
+    recentWords = [];
+    btnModeWord.classList.toggle("active", mode === "word");
+    btnModePhrase.classList.toggle("active", mode === "phrase");
+    answerInput.placeholder = mode === "phrase" ? "Skriv ordet som saknas..." : "Skriv ordet...";
+    updateProgressDisplay();
+    nextRound();
+  }
+
+  btnModeWord.addEventListener("click", () => setMode("word"));
+  btnModePhrase.addEventListener("click", () => setMode("phrase"));
 
   // --- Progress persistence ---
 
   function loadProgress() {
     try {
-      return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
+      return JSON.parse(localStorage.getItem(getStorageKey())) || {};
     } catch { return {}; }
   }
 
   function saveProgress(progress) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
+    localStorage.setItem(getStorageKey(), JSON.stringify(progress));
   }
 
   function getStats(word, progress) {
@@ -592,9 +689,10 @@ video {
   // --- Word categorization ---
 
   function categorize(progress) {
+    const wordList = getWordList();
     const unseen = [], struggling = [], assistedOnly = [], learning = [], mastered = [];
 
-    for (const item of WORDLIST) {
+    for (const item of wordList) {
       const s = getStats(item.word, progress);
       const total = s.correct + s.incorrect + s.assisted;
 
@@ -623,22 +721,20 @@ video {
 
   function pickFromBucket(bucket, progress) {
     if (bucket.length === 0) return null;
-    // Sort by lastSeen ascending (least recently seen first)
     bucket.sort((a, b) => {
       const sa = getStats(a.word, progress).lastSeen;
       const sb = getStats(b.word, progress).lastSeen;
       return sa - sb;
     });
-    // Pick from the least-recently-seen quarter to add some randomness
     const pool = bucket.slice(0, Math.max(3, Math.ceil(bucket.length / 4)));
     return pool[Math.floor(Math.random() * pool.length)];
   }
 
   function selectWord() {
+    const wordList = getWordList();
     const progress = loadProgress();
     const cats = categorize(progress);
 
-    // Build weighted selection (mastered words excluded)
     const buckets = [
       { items: cats.struggling, weight: 35 },
       { items: cats.assistedOnly, weight: 25 },
@@ -646,7 +742,6 @@ video {
       { items: cats.learning, weight: 15 },
     ];
 
-    // Filter out recently shown words
     const recentSet = new Set(recentWords);
     const filterRecent = (arr) => arr.filter(i => !recentSet.has(i.word));
 
@@ -661,16 +756,14 @@ video {
     }
 
     if (available.length === 0) {
-      // All non-mastered filtered out by recency — relax the filter
-      const unmastered = WORDLIST.filter(i => {
+      const unmastered = wordList.filter(i => {
         const s = getStats(i.word, progress);
         return (s.streak || 0) < getMasteryStreak();
       });
       if (unmastered.length > 0) {
         return unmastered[Math.floor(Math.random() * unmastered.length)];
       }
-      // Everything mastered — pick any word
-      return WORDLIST[Math.floor(Math.random() * WORDLIST.length)];
+      return wordList[Math.floor(Math.random() * wordList.length)];
     }
 
     let roll = Math.random() * totalWeight;
@@ -682,6 +775,16 @@ video {
     }
 
     return pickFromBucket(available[available.length - 1].items, progress);
+  }
+
+  // --- Phrase blanking ---
+
+  function blankPhrase(phrase, keyword) {
+    const escaped = keyword.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const re = new RegExp(escaped + "\\w*", "gi");
+    const blanked = phrase.replace(re, "___");
+    if (blanked === phrase) return phrase + " ___";
+    return blanked;
   }
 
   // --- Alternatives ---
@@ -788,7 +891,8 @@ video {
   function showMilestone(count) {
     const el = document.createElement("div");
     el.className = "milestone";
-    el.textContent = count + " ord klara, bra jobbat!";
+    const label = currentMode === "phrase" ? " fraser klara, bra jobbat!" : " ord klara, bra jobbat!";
+    el.textContent = count + label;
     document.body.appendChild(el);
     setTimeout(() => el.remove(), 2600);
   }
@@ -818,8 +922,17 @@ video {
       } else {
         feedbackDiv.classList.add("correct");
       }
-      feedbackDiv.innerHTML = escapeHtml(correctWord)
+      let html = escapeHtml(correctWord)
         + ' <span class="streak-stars">' + makeStars(streak) + "</span>";
+      if (currentMode === "phrase" && currentPhrase) {
+        const escaped = correctWord.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        const re = new RegExp(escaped + "\\w*", "gi");
+        const filled = currentPhrase.phrase.replace(re,
+          function(m) { return '<span style="color:#4ecca3;font-weight:700">' + escapeHtml(m) + '</span>'; }
+        );
+        html = '<div style="font-size:15px;margin-bottom:8px;font-weight:400;color:#ccc">' + filled + '</div>' + html;
+      }
+      feedbackDiv.innerHTML = html;
     } else {
       feedbackDiv.classList.add("incorrect");
       feedbackDiv.innerHTML = escapeHtml(correctWord)
@@ -859,7 +972,20 @@ video {
       recentWords.push(currentItem.word);
       if (recentWords.length > MIN_GAP) recentWords.shift();
     }
-    currentItem = selectWord();
+
+    const selected = selectWord();
+
+    if (currentMode === "phrase") {
+      const phrases = phrasesByWord[selected.word];
+      currentPhrase = phrases[Math.floor(Math.random() * phrases.length)];
+      currentItem = { word: selected.word, video: currentPhrase.video };
+      phraseTextDiv.textContent = blankPhrase(currentPhrase.phrase, selected.word);
+      phraseTextDiv.style.display = "";
+    } else {
+      currentItem = selected;
+      currentPhrase = null;
+      phraseTextDiv.style.display = "none";
+    }
 
     const idMatch = currentItem.video.match(/-(\d{5})-/);
     const prefix = idMatch ? idMatch[1].substring(0, 2) : "00";
@@ -876,7 +1002,7 @@ video {
   function updateProgressDisplay() {
     const progress = loadProgress();
     const cats = categorize(progress);
-    const total = WORDLIST.length;
+    const total = getWordList().length;
 
     document.getElementById("stat-mastered").textContent = "Klara: " + cats.mastered.length;
     document.getElementById("stat-learning").textContent =
@@ -938,8 +1064,9 @@ video {
   });
 
   btnResetProgress.addEventListener("click", () => {
-    if (confirm("Nollställ alla framsteg? Detta kan inte ångras.")) {
-      localStorage.removeItem(STORAGE_KEY);
+    const label = currentMode === "phrase" ? "frasframsteg" : "alla framsteg";
+    if (confirm("Nollställ " + label + "? Detta kan inte ångras.")) {
+      localStorage.removeItem(getStorageKey());
       updateProgressDisplay();
       nextRound();
     }
@@ -963,11 +1090,12 @@ video {
     mastered.sort((a, b) => a.word.localeCompare(b.word, "sv"));
     inProgress.sort((a, b) => a.word.localeCompare(b.word, "sv"));
 
+    const emptyLabel = currentMode === "phrase" ? "fraser" : "ord";
     let html = "";
 
     html += '<div class="stats-section-title mastered">Klara (' + mastered.length + ')</div>';
     if (mastered.length === 0) {
-      html += '<div class="stats-empty">Inga ord klara ännu</div>';
+      html += '<div class="stats-empty">Inga ' + emptyLabel + ' klara ännu</div>';
     }
     for (const s of mastered) {
       html += statsRowHtml(s);
@@ -975,7 +1103,7 @@ video {
 
     html += '<div class="stats-section-title learning">Lär sig (' + inProgress.length + ')</div>';
     if (inProgress.length === 0) {
-      html += '<div class="stats-empty">Inga ord påbörjade ännu</div>';
+      html += '<div class="stats-empty">Inga ' + emptyLabel + ' påbörjade ännu</div>';
     }
     for (const s of inProgress) {
       html += statsRowHtml(s);
