@@ -24,6 +24,7 @@ def main():
 
     # 2. Read phrases.csv and match by ID
     phrases = []
+    seen_videos = set()
     skipped = 0
     with open("phrases.csv", encoding="utf-8") as f:
         reader = csv.DictReader(f)
@@ -48,6 +49,10 @@ def main():
                 continue
 
             vid_id = m.group(1)
+            if movie in seen_videos:
+                skipped += 1
+                continue
+            seen_videos.add(movie)
             if vid_id not in id_to_word:
                 skipped += 1
                 continue
@@ -60,8 +65,18 @@ def main():
                 skipped += 1
                 continue
 
+            # Auto-bracket the keyword form in the phrase
+            word = id_to_word[vid_id]
+            escaped = re.escape(word)
+            phrase_text = re.sub(
+                rf"(?<!\[)({escaped}\w*)",
+                r"[\1]",
+                phrase_text,
+                flags=re.IGNORECASE,
+            )
+
             phrases.append({
-                "word": id_to_word[vid_id],
+                "word": word,
                 "phrase": phrase_text,
                 "video": movie,
             })

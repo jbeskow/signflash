@@ -601,7 +601,7 @@ video {
 </div>
 
 <script src="wordlist.js"></script>
-<script src="phrases.js"></script>
+<script src="phrases_cur.js"></script>
 <script>
 (function() {
   "use strict";
@@ -779,10 +779,8 @@ video {
 
   // --- Phrase blanking ---
 
-  function blankPhrase(phrase, keyword) {
-    const escaped = keyword.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    const re = new RegExp(escaped + "\\w*", "gi");
-    const blanked = phrase.replace(re, "___");
+  function blankPhrase(phrase) {
+    const blanked = phrase.replace(/\[[^\]]+\]/g, "___");
     if (blanked === phrase) return phrase + " ___";
     return blanked;
   }
@@ -827,7 +825,16 @@ video {
     if (!answer) return;
 
     const correct = currentItem.word.toLowerCase();
-    const isCorrect = answer === correct;
+    let accepted = [correct];
+    if (currentMode === "phrase" && currentPhrase) {
+      const bracketed = currentPhrase.phrase.match(/\[([^\]]+)\]/g);
+      if (bracketed) {
+        for (const b of bracketed) {
+          accepted.push(b.slice(1, -1).toLowerCase());
+        }
+      }
+    }
+    const isCorrect = accepted.includes(answer);
 
     if (isCorrect) {
       const progress = loadProgress();
@@ -925,10 +932,8 @@ video {
       let html = escapeHtml(correctWord)
         + ' <span class="streak-stars">' + makeStars(streak) + "</span>";
       if (currentMode === "phrase" && currentPhrase) {
-        const escaped = correctWord.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-        const re = new RegExp(escaped + "\\w*", "gi");
-        const filled = currentPhrase.phrase.replace(re,
-          function(m) { return '<span style="color:#4ecca3;font-weight:700">' + escapeHtml(m) + '</span>'; }
+        const filled = currentPhrase.phrase.replace(/\[([^\]]+)\]/g,
+          function(_, m) { return '<span style="color:#4ecca3;font-weight:700">' + escapeHtml(m) + '</span>'; }
         );
         html = '<div style="font-size:15px;margin-bottom:8px;font-weight:400;color:#ccc">' + filled + '</div>' + html;
       }
@@ -979,8 +984,8 @@ video {
       const phrases = phrasesByWord[selected.word];
       currentPhrase = phrases[Math.floor(Math.random() * phrases.length)];
       currentItem = { word: selected.word, video: currentPhrase.video };
-      phraseTextDiv.textContent = blankPhrase(currentPhrase.phrase, selected.word);
-      phraseTextDiv.style.display = "";
+      phraseTextDiv.textContent = blankPhrase(currentPhrase.phrase);
+      phraseTextDiv.style.display = "block";
     } else {
       currentItem = selected;
       currentPhrase = null;
