@@ -45,7 +45,7 @@ const WORDLIST = [
   { word: "köpa", video: "kopa-05587-tecken.mp4" },
   { word: "ringa", video: "ringa-03775-tecken.mp4" },
   { word: "hjälpa", video: "hjalpa-09611-tecken.mp4" },
-  { word: "vänta", video: "vanta-12052-tecken.mp4" },
+  { word: "vänta", video: "vanta-00207-tecken.mp4" },
   { word: "börja", video: "borja-02945-tecken.mp4" },
   { word: "sluta", video: "sluta-20073-tecken.mp4" },
   { word: "förstå", video: "forsta-07617-tecken.mp4" },

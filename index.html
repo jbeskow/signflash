@@ -467,7 +467,7 @@ video {
 .mode-toggle {
   display: flex;
   gap: 0;
-  width: 100%;
+  flex-shrink: 0;
 }
 
 .mode-btn {
@@ -515,6 +515,146 @@ video {
   display: none;
 }
 
+.wordlist-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.wordlist-select-wrap {
+  position: relative;
+  flex: 1;
+}
+
+.wordlist-btn {
+  width: 100%;
+  padding: 8px 12px;
+  background: #0f3460;
+  border: 2px solid #0f3460;
+  border-radius: 8px;
+  color: #e0e0e0;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: background 0.2s;
+}
+
+.wordlist-btn:hover { background: #1a4a7a; }
+
+.wordlist-btn .wl-count {
+  color: #888;
+  font-weight: 400;
+}
+
+.wordlist-btn::after {
+  content: "\25BE";
+  margin-left: auto;
+  font-size: 12px;
+  color: #888;
+}
+
+.wordlist-menu {
+  display: none;
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  margin-top: 4px;
+  background: #16213e;
+  border: 1px solid #0f3460;
+  border-radius: 8px;
+  padding: 4px 0;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+  z-index: 30;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.wordlist-menu.open { display: block; }
+
+.wordlist-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 12px;
+  background: none;
+  border: none;
+  color: #e0e0e0;
+  font-size: 14px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.wordlist-menu-item:hover { background: rgba(255,255,255,0.05); }
+.wordlist-menu-item.active { background: rgba(78,204,163,0.1); }
+
+.wordlist-menu-item .wl-check {
+  width: 18px;
+  text-align: center;
+  color: #4ecca3;
+  flex-shrink: 0;
+}
+
+.wordlist-menu-item .wl-name { flex: 1; }
+
+.wordlist-menu-item .wl-count {
+  color: #888;
+  font-size: 13px;
+}
+
+.completion-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(26, 26, 46, 0.95);
+  z-index: 250;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.completion-overlay.open {
+  display: flex;
+  animation: celebrate 0.6s ease-out;
+}
+
+.completion-title {
+  font-size: 32px;
+  font-weight: 700;
+  color: #f0c040;
+}
+
+.completion-subtitle {
+  font-size: 18px;
+  color: #ccc;
+}
+
+.completion-stars {
+  font-size: 48px;
+  letter-spacing: 8px;
+}
+
+.btn-completion-close {
+  margin-top: 16px;
+  padding: 12px 32px;
+  background: #4ecca3;
+  color: #1a1a2e;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-completion-close:hover { background: #3dbb94; }
+
 @media (max-width: 520px) {
   .app { padding: 10px; gap: 12px; }
   #answer-input { font-size: 16px; padding: 10px 12px; }
@@ -554,9 +694,18 @@ video {
 </div>
 
 <div class="app">
-  <div class="mode-toggle">
-    <button class="mode-btn active" id="btn-mode-word">Ord</button>
-    <button class="mode-btn" id="btn-mode-phrase">Fraser</button>
+  <div class="wordlist-bar">
+    <div class="wordlist-select-wrap">
+      <button class="wordlist-btn" id="wordlist-btn">
+        <span id="wordlist-btn-name">Grunder 1</span>
+        <span class="wl-count" id="wordlist-btn-count"></span>
+      </button>
+      <div class="wordlist-menu" id="wordlist-menu"></div>
+    </div>
+    <div class="mode-toggle">
+      <button class="mode-btn active" id="btn-mode-word">Ord</button>
+      <button class="mode-btn" id="btn-mode-phrase">Fraser</button>
+    </div>
   </div>
 
   <div class="video-container">
@@ -602,25 +751,76 @@ video {
   <div class="stats-list" id="stats-list"></div>
 </div>
 
+<div class="completion-overlay" id="completion-overlay">
+  <div class="completion-stars">&#x2B50;&#x2B50;&#x2B50;</div>
+  <div class="completion-title">Alla ord klara!</div>
+  <div class="completion-subtitle" id="completion-subtitle"></div>
+  <button class="btn-completion-close" id="btn-completion-close">Fortsätt</button>
+</div>
+
+<script src="wordlists/all.js"></script>
 <script src="wordlist.js"></script>
 <script src="phrases_cur.js"></script>
 <script>
 (function() {
   "use strict";
 
-  const STORAGE_KEY = "signflash_progress";
-  const PHRASE_STORAGE_KEY = "signflash_phrase_progress";
   const SETTINGS_KEY = "signflash_settings";
   const FEEDBACK_DELAY = 1800;
   const MASTERY_DELAY = 2500;
 
-  // Build phrase lookup: word → [phrase objects]
-  const phrasesByWord = {};
-  for (const p of PHRASELIST) {
-    if (!phrasesByWord[p.word]) phrasesByWord[p.word] = [];
-    phrasesByWord[p.word].push(p);
+  // --- Wordlist registry ---
+
+  // Fallback: if no wordlist files loaded WORDLISTS, use legacy WORDLIST
+  if (!window.WORDLISTS || window.WORDLISTS.length === 0) {
+    window.WORDLISTS = [{ id: "grunder1", name: "Grunder 1", words: WORDLIST }];
   }
-  const phraseWordList = Object.keys(phrasesByWord).map(w => ({ word: w }));
+
+  const DEFAULT_WORDLIST = "blandat1";
+  let savedWl = loadSettings().wordlistId;
+  let currentWordlistId = window.WORDLISTS.find(w => w.id === savedWl) ? savedWl
+    : window.WORDLISTS.find(w => w.id === DEFAULT_WORDLIST) ? DEFAULT_WORDLIST
+    : window.WORDLISTS[0].id;
+
+  function getCurrentWordlist() {
+    return window.WORDLISTS.find(w => w.id === currentWordlistId) || window.WORDLISTS[0];
+  }
+
+  // --- Phrase lookup (recomputed on wordlist change) ---
+
+  let phrasesByWord = {};
+  let phraseWordList = [];
+
+  function recomputePhrases() {
+    phrasesByWord = {};
+    const wordSet = new Set(getCurrentWordlist().words.map(w => w.word));
+    for (const p of PHRASELIST) {
+      if (!wordSet.has(p.word)) continue;
+      if (!phrasesByWord[p.word]) phrasesByWord[p.word] = [];
+      phrasesByWord[p.word].push(p);
+    }
+    phraseWordList = Object.keys(phrasesByWord).map(w => ({ word: w }));
+  }
+
+  recomputePhrases();
+
+  // --- Progress migration ---
+
+  function migrateProgress() {
+    const oldKey = "signflash_progress";
+    const oldPhraseKey = "signflash_phrase_progress";
+    const newKey = "signflash_progress_blandat1";
+    const newPhraseKey = "signflash_phrase_progress_blandat1";
+
+    if (localStorage.getItem(oldKey) && !localStorage.getItem(newKey)) {
+      localStorage.setItem(newKey, localStorage.getItem(oldKey));
+    }
+    if (localStorage.getItem(oldPhraseKey) && !localStorage.getItem(newPhraseKey)) {
+      localStorage.setItem(newPhraseKey, localStorage.getItem(oldPhraseKey));
+    }
+  }
+
+  migrateProgress();
 
   function loadSettings() {
     try { return JSON.parse(localStorage.getItem(SETTINGS_KEY)) || {}; } catch { return {}; }
@@ -648,14 +848,17 @@ video {
   let waitingForNext = false;
   let currentMode = "word";
 
-  // --- Mode ---
+  // --- Mode & storage keys ---
 
   function getStorageKey() {
-    return currentMode === "phrase" ? PHRASE_STORAGE_KEY : STORAGE_KEY;
+    const base = currentMode === "phrase"
+      ? "signflash_phrase_progress"
+      : "signflash_progress";
+    return base + "_" + currentWordlistId;
   }
 
   function getWordList() {
-    return currentMode === "phrase" ? phraseWordList : WORDLIST;
+    return currentMode === "phrase" ? phraseWordList : getCurrentWordlist().words;
   }
 
   function setMode(mode) {
@@ -717,6 +920,21 @@ video {
     }
 
     return { unseen, struggling, assistedOnly, learning, mastered };
+  }
+
+  // Helper: count mastered for any wordlist id (used by dropdown)
+  function countMastered(wlId) {
+    const wl = window.WORDLISTS.find(w => w.id === wlId);
+    if (!wl) return { mastered: 0, total: 0 };
+    const key = "signflash_progress_" + wlId;
+    let progress = {};
+    try { progress = JSON.parse(localStorage.getItem(key)) || {}; } catch {}
+    let mastered = 0;
+    for (const item of wl.words) {
+      const s = progress[item.word];
+      if (s && (s.streak || 0) >= getMasteryStreak()) mastered++;
+    }
+    return { mastered, total: wl.words.length };
   }
 
   // --- Word selection ---
@@ -790,7 +1008,7 @@ video {
   // --- Alternatives ---
 
   function getDistractors(correctWord, count) {
-    const others = WORDLIST.filter(i => i.word !== correctWord);
+    const others = getCurrentWordlist().words.filter(i => i.word !== correctWord);
     const shuffled = others.slice().sort(() => Math.random() - 0.5);
     return shuffled.slice(0, count).map(i => i.word);
   }
@@ -860,7 +1078,10 @@ video {
         const cats = categorize(progress);
         const masteredCount = cats.mastered.length;
         setTimeout(pulseCounter, 500);
-        if (masteredCount % 10 === 0) {
+        // Check completion
+        if (masteredCount === getWordList().length) {
+          setTimeout(() => showCompletion(), 600);
+        } else if (masteredCount % 10 === 0) {
           setTimeout(() => showMilestone(masteredCount), 600);
         }
       }
@@ -905,6 +1126,23 @@ video {
     document.body.appendChild(el);
     setTimeout(() => el.remove(), 2600);
   }
+
+  // --- Completion overlay ---
+
+  const completionOverlay = document.getElementById("completion-overlay");
+  const completionSubtitle = document.getElementById("completion-subtitle");
+  const btnCompletionClose = document.getElementById("btn-completion-close");
+
+  function showCompletion() {
+    const wl = getCurrentWordlist();
+    completionSubtitle.textContent = wl.name + " — alla " + wl.words.length + " ord klara!";
+    completionOverlay.classList.add("open");
+    renderWordlistDropdown();
+  }
+
+  btnCompletionClose.addEventListener("click", () => {
+    completionOverlay.classList.remove("open");
+  });
 
   function makeStars(streak) {
     const target = getMasteryStreak();
@@ -1021,7 +1259,69 @@ video {
 
     document.getElementById("progress-mastered").style.width = masteredPct + "%";
     document.getElementById("progress-learning").style.width = learningPct + "%";
+
+    // Update wordlist button count
+    const info = countMastered(currentWordlistId);
+    document.getElementById("wordlist-btn-count").textContent = "(" + info.mastered + "/" + info.total + ")";
   }
+
+  // --- Wordlist selector ---
+
+  const wordlistBtn = document.getElementById("wordlist-btn");
+  const wordlistMenu = document.getElementById("wordlist-menu");
+
+  function renderWordlistDropdown() {
+    document.getElementById("wordlist-btn-name").textContent = getCurrentWordlist().name;
+    const info = countMastered(currentWordlistId);
+    document.getElementById("wordlist-btn-count").textContent = "(" + info.mastered + "/" + info.total + ")";
+
+    let html = "";
+    for (const wl of window.WORDLISTS) {
+      const m = countMastered(wl.id);
+      const isActive = wl.id === currentWordlistId;
+      const isComplete = m.mastered === m.total;
+      html += '<button class="wordlist-menu-item' + (isActive ? ' active' : '') + '" data-wl-id="' + escapeHtml(wl.id) + '">'
+        + '<span class="wl-check">' + (isComplete ? "\u2713" : "") + '</span>'
+        + '<span class="wl-name">' + escapeHtml(wl.name) + '</span>'
+        + '<span class="wl-count">(' + m.mastered + '/' + m.total + ')</span>'
+        + '</button>';
+    }
+    wordlistMenu.innerHTML = html;
+
+    // Bind click handlers
+    for (const btn of wordlistMenu.querySelectorAll(".wordlist-menu-item")) {
+      btn.addEventListener("click", () => {
+        const id = btn.getAttribute("data-wl-id");
+        switchWordlist(id);
+        wordlistMenu.classList.remove("open");
+      });
+    }
+  }
+
+  function switchWordlist(id) {
+    if (id === currentWordlistId) return;
+    currentWordlistId = id;
+    const s = loadSettings(); s.wordlistId = id; saveSettings(s);
+    recentWords = [];
+    recomputePhrases();
+    renderWordlistDropdown();
+    updateProgressDisplay();
+    nextRound();
+  }
+
+  wordlistBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    renderWordlistDropdown();
+    wordlistMenu.classList.toggle("open");
+  });
+
+  document.addEventListener("click", () => {
+    wordlistMenu.classList.remove("open");
+  });
+
+  wordlistMenu.addEventListener("click", (e) => {
+    e.stopPropagation();
+  });
 
   // --- Settings menu ---
 
@@ -1075,6 +1375,7 @@ video {
     if (confirm("Nollställ " + label + "? Detta kan inte ångras.")) {
       localStorage.removeItem(getStorageKey());
       updateProgressDisplay();
+      renderWordlistDropdown();
       nextRound();
     }
   });
@@ -1183,6 +1484,7 @@ video {
   });
 
   // --- Init ---
+  renderWordlistDropdown();
   updateProgressDisplay();
   nextRound();
 
