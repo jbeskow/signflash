@@ -498,7 +498,12 @@ video {
   border-color: #0f3460;
 }
 
-.mode-btn:hover:not(.active) {
+.mode-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.mode-btn:hover:not(.active):not(:disabled) {
   color: #ccc;
   background: rgba(255,255,255,0.03);
 }
@@ -758,7 +763,7 @@ video {
   <button class="btn-completion-close" id="btn-completion-close">Fortsätt</button>
 </div>
 
-<script src="wordlists/all.js"></script>
+<script src="lists/all.js"></script>
 <script src="wordlist.js"></script>
 <script src="phrases_cur.js"></script>
 <script>
@@ -793,13 +798,18 @@ video {
 
   function recomputePhrases() {
     phrasesByWord = {};
-    const wordSet = new Set(getCurrentWordlist().words.map(w => w.word));
-    for (const p of PHRASELIST) {
+    const wl = getCurrentWordlist();
+    const phraseSource = (wl.phrases && wl.phrases.length > 0)
+      ? wl.phrases
+      : (typeof PHRASELIST !== 'undefined' ? PHRASELIST : []);
+    const wordSet = new Set(wl.words.map(w => w.word));
+    for (const p of phraseSource) {
       if (!wordSet.has(p.word)) continue;
       if (!phrasesByWord[p.word]) phrasesByWord[p.word] = [];
       phrasesByWord[p.word].push(p);
     }
     phraseWordList = Object.keys(phrasesByWord).map(w => ({ word: w }));
+    // NOTE: do NOT manipulate btnModePhrase here — called before it's declared
   }
 
   recomputePhrases();
@@ -870,6 +880,13 @@ video {
     answerInput.placeholder = mode === "phrase" ? "Skriv ordet som saknas..." : "Skriv ordet...";
     updateProgressDisplay();
     nextRound();
+  }
+
+  function updatePhraseBtnState() {
+    const hasPhrase = phraseWordList.length > 0;
+    btnModePhrase.disabled = !hasPhrase;
+    btnModeWord.classList.toggle("active", currentMode === "word");
+    btnModePhrase.classList.toggle("active", currentMode === "phrase");
   }
 
   btnModeWord.addEventListener("click", () => setMode("word"));
@@ -1304,6 +1321,11 @@ video {
     const s = loadSettings(); s.wordlistId = id; saveSettings(s);
     recentWords = [];
     recomputePhrases();
+    if (currentMode === "phrase" && phraseWordList.length === 0) {
+      currentMode = "word";
+      answerInput.placeholder = "Skriv ordet...";
+    }
+    updatePhraseBtnState();
     renderWordlistDropdown();
     updateProgressDisplay();
     nextRound();
@@ -1486,6 +1508,7 @@ video {
   // --- Init ---
   renderWordlistDropdown();
   updateProgressDisplay();
+  updatePhraseBtnState();
   nextRound();
 
 })();
