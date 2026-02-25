@@ -631,23 +631,51 @@ video {
 
 .completion-overlay.open {
   display: flex;
-  animation: celebrate 0.6s ease-out;
+  animation: celebrate 0.5s ease-out;
 }
 
 .completion-title {
   font-size: 32px;
   font-weight: 700;
   color: #f0c040;
+  animation: completion-title-in 0.5s 0.2s ease-out both;
 }
 
 .completion-subtitle {
   font-size: 18px;
   color: #ccc;
+  animation: completion-title-in 0.5s 0.35s ease-out both;
+}
+
+@keyframes completion-title-in {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 .completion-stars {
-  font-size: 48px;
-  letter-spacing: 8px;
+  font-size: 52px;
+  letter-spacing: 10px;
+}
+
+.completion-stars span {
+  display: inline-block;
+  opacity: 0;
+  animation: star-pop 0.45s ease-out both;
+}
+.completion-stars span:nth-child(1) { animation-delay: 0.05s; }
+.completion-stars span:nth-child(2) { animation-delay: 0.2s; }
+.completion-stars span:nth-child(3) { animation-delay: 0.35s; }
+
+@keyframes star-pop {
+  0%   { transform: scale(0) rotate(-30deg); opacity: 0; }
+  65%  { transform: scale(1.4) rotate(8deg); opacity: 1; }
+  100% { transform: scale(1) rotate(0); opacity: 1; }
+}
+
+@keyframes confetti-fly {
+  0%   { transform: translate(0, 0) rotate(0deg); opacity: 1; }
+  80%  { opacity: 1; }
+  100% { transform: translate(var(--cx), var(--cy)) rotate(var(--cr)); opacity: 0; }
 }
 
 .btn-completion-close {
@@ -762,7 +790,7 @@ video {
 </div>
 
 <div class="completion-overlay" id="completion-overlay">
-  <div class="completion-stars">&#x2B50;&#x2B50;&#x2B50;</div>
+  <div class="completion-stars"><span>&#x2B50;</span><span>&#x2B50;</span><span>&#x2B50;</span></div>
   <div class="completion-title">Alla ord klara!</div>
   <div class="completion-subtitle" id="completion-subtitle"></div>
   <button class="btn-completion-close" id="btn-completion-close">Fortsätt</button>
@@ -786,7 +814,7 @@ video {
     window.WORDLISTS = [{ id: "grunder1", name: "Grunder 1", words: WORDLIST }];
   }
 
-  const DEFAULT_WORDLIST = "blandat1";
+  const DEFAULT_WORDLIST = "allmant1";
   let savedWl = loadSettings().wordlistId;
   let currentWordlistId = window.WORDLISTS.find(w => w.id === savedWl) ? savedWl
     : window.WORDLISTS.find(w => w.id === DEFAULT_WORDLIST) ? DEFAULT_WORDLIST
@@ -1143,11 +1171,27 @@ video {
     el.classList.add("pulse");
   }
 
+  const milestonePool = [
+    (n, m) => n + " " + m + " klara — snyggt jobbat!",
+    (n, m) => n + " " + m + " i hamn, kör på!",
+    (n, m) => "Kanonbra — " + n + " " + m + " klara!",
+    (n, m) => n + " " + m + " mastrade, imponerande!",
+    (n, m) => "Strålande — " + n + " " + m + " klara!",
+    (n, m) => n + " " + m + " ner, håll i!",
+    (n, m) => "Bra kämpat — " + n + " " + m + " klara!",
+    (n, m) => n + " " + m + "? Du är på rätt spår!",
+    (n, m) => "Fortsätt så — " + n + " " + m + " klara!",
+    (n, m) => n + " " + m + " klara, fenomenalt!",
+    (n, m) => "Wow — " + n + " " + m + " redan!",
+    (n, m) => n + " " + m + " avklarade, du är grym!",
+  ];
+
   function showMilestone(count) {
     const el = document.createElement("div");
     el.className = "milestone";
-    const label = currentMode === "phrase" ? " fraser klara, bra jobbat!" : " ord klara, bra jobbat!";
-    el.textContent = count + label;
+    const mode = currentMode === "phrase" ? "fraser" : "ord";
+    const fn = milestonePool[Math.floor(Math.random() * milestonePool.length)];
+    el.textContent = fn(count, mode);
     document.body.appendChild(el);
     setTimeout(() => el.remove(), 2600);
   }
@@ -1158,10 +1202,42 @@ video {
   const completionSubtitle = document.getElementById("completion-subtitle");
   const btnCompletionClose = document.getElementById("btn-completion-close");
 
+  function spawnConfetti() {
+    const colors = ["#4ecca3", "#f0c040", "#e74c3c", "#818cf8", "#fb923c", "#38bdf8", "#f472b6"];
+    for (let i = 0; i < 80; i++) {
+      const el = document.createElement("div");
+      const angle = Math.random() * Math.PI * 2;
+      const dist = 130 + Math.random() * 230;
+      const size = 5 + Math.random() * 7;
+      el.style.position = "fixed";
+      el.style.width = size + "px";
+      el.style.height = (size * (0.4 + Math.random())) + "px";
+      el.style.background = colors[Math.floor(Math.random() * colors.length)];
+      el.style.left = "calc(50% + " + ((Math.random() - 0.5) * 100) + "px)";
+      el.style.top = "42%";
+      el.style.borderRadius = Math.random() > 0.55 ? "50%" : "2px";
+      el.style.pointerEvents = "none";
+      el.style.zIndex = "400";
+      el.style.setProperty("--cx", (Math.cos(angle) * dist) + "px");
+      el.style.setProperty("--cy", (Math.sin(angle) * dist - 80) + "px");
+      el.style.setProperty("--cr", ((Math.random() - 0.5) * 900) + "deg");
+      el.style.animation = "confetti-fly " + (0.7 + Math.random() * 1.1) + "s cubic-bezier(0.2,0.8,0.3,1) " + (Math.random() * 0.35) + "s forwards";
+      document.body.appendChild(el);
+      setTimeout(() => el.remove(), 2200);
+    }
+  }
+
   function showCompletion() {
     const wl = getCurrentWordlist();
     completionSubtitle.textContent = wl.name + " — alla " + wl.words.length + " ord klara!";
+    // Re-trigger star animations
+    completionOverlay.querySelectorAll(".completion-stars span").forEach(s => {
+      s.style.animation = "none";
+      s.offsetHeight; // reflow
+      s.style.animation = "";
+    });
     completionOverlay.classList.add("open");
+    spawnConfetti();
     renderWordlistDropdown();
   }
 

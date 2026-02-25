@@ -33,6 +33,7 @@ import argparse
 import ast
 import csv
 import json
+import math
 import os
 import re
 import sys
@@ -151,6 +152,29 @@ def ai_bracket(word, phrase_text, client):
     return message.content[0].text.strip().strip('"')
 
 
+def write_wordlist_js(output_path, wl_id, wl_name, entries, phrase_entries):
+    """Write a single wordlist JS file."""
+    os.makedirs(os.path.dirname(os.path.abspath(output_path)), exist_ok=True)
+    with open(output_path, "w", encoding="utf-8") as f:
+        f.write('(window.WORDLISTS = window.WORDLISTS || []).push({\n')
+        f.write(f'  id: {json.dumps(wl_id, ensure_ascii=False)},\n')
+        f.write(f'  name: {json.dumps(wl_name, ensure_ascii=False)},\n')
+        f.write('  words: [\n')
+        for i, entry in enumerate(entries):
+            comma = "," if i < len(entries) - 1 else ""
+            f.write(f'    {{ word: {json.dumps(entry["word"], ensure_ascii=False)}, video: {json.dumps(entry["video"], ensure_ascii=False)} }}{comma}\n')
+        f.write('  ]')
+        if phrase_entries:
+            f.write(',\n  phrases: [\n')
+            for i, pe in enumerate(phrase_entries):
+                comma = "," if i < len(phrase_entries) - 1 else ""
+                f.write(f'    {{ word: {json.dumps(pe["word"], ensure_ascii=False)}, phrase: {json.dumps(pe["phrase"], ensure_ascii=False)}, video: {json.dumps(pe["video"], ensure_ascii=False)} }}{comma}\n')
+            f.write('  ]\n')
+        else:
+            f.write('\n')
+        f.write('});\n')
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Generate a SignFlash wordlist JS file",
@@ -177,6 +201,7 @@ def main():
     parser.add_argument("--rebuild", action="store_true", help="Rebuild lists/all.js and exit")
     parser.add_argument("--phrases", action="store_true", help="Embed phrase data in output JS")
     parser.add_argument("--ai-bracket", action="store_true", help="Use Claude Haiku to bracket inflection forms (requires: pip install anthropic + ANTHROPIC_API_KEY)")
+    parser.add_argument("--split", type=int, default=None, help="Split into balanced chunks of at most N words; generates {id}1.js, {id}2.js, ...")
     args = parser.parse_args()
 
     script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -363,43 +388,45 @@ def main():
                 unique_phrase_entries.append(pe)
         phrase_entries = unique_phrase_entries
 
-    # --- Output JS file ---
+    # --- Output JS file(s) ---
 
-    output_path = os.path.join(lists_dir, f"{args.id}.js")
     os.makedirs(lists_dir, exist_ok=True)
 
-    with open(output_path, "w", encoding="utf-8") as f:
-        f.write('(window.WORDLISTS = window.WORDLISTS || []).push({\n')
-        f.write(f'  id: {json.dumps(args.id, ensure_ascii=False)},\n')
-        f.write(f'  name: {json.dumps(args.name, ensure_ascii=False)},\n')
-        f.write('  words: [\n')
-        for i, entry in enumerate(entries):
-            comma = "," if i < len(entries) - 1 else ""
-            f.write(f'    {{ word: {json.dumps(entry["word"], ensure_ascii=False)}, video: {json.dumps(entry["video"], ensure_ascii=False)} }}{comma}\n')
-        f.write('  ]')
-        if phrase_entries:
-            f.write(',\n  phrases: [\n')
-            for i, pe in enumerate(phrase_entries):
-                comma = "," if i < len(phrase_entries) - 1 else ""
-                f.write(f'    {{ word: {json.dumps(pe["word"], ensure_ascii=False)}, phrase: {json.dumps(pe["phrase"], ensure_ascii=False)}, video: {json.dumps(pe["video"], ensure_ascii=False)} }}{comma}\n')
-            f.write('  ]\n')
-        else:
-            f.write('\n')
-        f.write('});\n')
-
-    print(f"\nWrote {len(entries)} words to {output_path}")
-    if args.phrases:
-        print(f"Embedded {len(phrase_entries)} phrase entries")
-        if not args.ai_bracket:
+    if args.split and len(entries) > args.split:
+        num_chunks = math.ceil(len(entries) / args.split)
+        chunk_size = math.ceil(len(entries) / num_chunks)
+        chunks = [entries[i:i + chunk_size] for i in range(0, len(entries), chunk_size)]
+        output_paths = []
+        for n, chunk in enumerate(chunks, 1):
+            chunk_words = {e["word"] for e in chunk}
+            chunk_phrases = [pe for pe in phrase_entries if pe["word"] in chunk_words]
+            chunk_id = f"{args.id}{n}"
+            chunk_name = f"{args.name} {n}"
+            out = os.path.join(lists_dir, f"{chunk_id}.js")
+            write_wordlist_js(out, chunk_id, chunk_name, chunk, chunk_phrases)
+            print(f"  {chunk_name}: {len(chunk)} words, {len(chunk_phrases)} phrases → {out}")
+            output_paths.append(out)
+        print(f"\nWrote {len(chunks)} lists ({len(entries)} words total)")
+        if args.phrases and not args.ai_bracket:
             print('Tip: re-run with --ai-bracket for better inflection detection (e.g. "vill"→"vilja")')
-
-    # Auto-rebuild all.js if output is inside lists_dir
-    try:
-        output_dir = os.path.dirname(os.path.abspath(output_path))
-        if os.path.samefile(output_dir, lists_dir):
-            rebuild_all_js(lists_dir)
-    except FileNotFoundError:
-        pass
+        try:
+            if os.path.samefile(os.path.dirname(os.path.abspath(output_paths[0])), lists_dir):
+                rebuild_all_js(lists_dir)
+        except FileNotFoundError:
+            pass
+    else:
+        output_path = os.path.join(lists_dir, f"{args.id}.js")
+        write_wordlist_js(output_path, args.id, args.name, entries, phrase_entries)
+        print(f"\nWrote {len(entries)} words to {output_path}")
+        if args.phrases:
+            print(f"Embedded {len(phrase_entries)} phrase entries")
+            if not args.ai_bracket:
+                print('Tip: re-run with --ai-bracket for better inflection detection (e.g. "vill"→"vilja")')
+        try:
+            if os.path.samefile(os.path.dirname(os.path.abspath(output_path)), lists_dir):
+                rebuild_all_js(lists_dir)
+        except FileNotFoundError:
+            pass
 
     if warnings:
         print(f"\nWarnings ({len(warnings)}):")
