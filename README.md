@@ -9,17 +9,17 @@
 
 🎬 titta på videon ✏️ skriv tecknet ✅ fortsätt tills du kan det!
 
-❓ svarar du fel får du alternativ
+❓ fel svar ger alternativ till hjälp
 
 ⭐⭐⭐ tre rätt i rad utan hjälp - tecknet är "klart" 🎉
 
-📚 ordlistor i olika kategorier, med exempelfraser
+📚 ordlistor i olika kategorier + exempelfraser
 
 🐢 olika uppspelningshastigeter *(1x, 0.5x, 0.25x)*
 
-🆓 helt fritt. ingen inloggning. framsteg sparas i browsern
+🆓 helt fritt. ingen inloggning. bara lokal lagring
 
-🎥 videor från [teckenspråkslexikon](https://teckensprakslexikon.su.se), Stockholms universitet.
+📺 videor från [**teckenspråkslexikon**](https://teckensprakslexikon.su.se), Stockholms universitet.
 
 💡 tips: kör som **webapp** på mobilen - välj *lägg till på hemskärmen*
 
