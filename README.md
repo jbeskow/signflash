@@ -19,6 +19,6 @@
 
 🎥 videor från [Teckenspråkslexikon](https://teckensprakslexikon.su.se), Stockholms universitet.
 
-💡 tips! på mobiltelefon, välj spara på hemskärmen så funkar det som webapp (utan adressfält)
+💡 tips! på mobiltelefon, välj *lägg till på hemskärmen* så körs sidan som en webapp (utan adressfält)
 
 💚 Vibekodat med kärlek av [jbeskow](https://github.com/jbeskow)
