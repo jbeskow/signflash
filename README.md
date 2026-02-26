@@ -1,5 +1,5 @@
 # ⚡ SignFlash
-<a href="https://jbeskow.github.io/signflash/"><img src="signflash-color.png" alt="signflash" width="200"/>
+<a href="https://jbeskow.github.io/signflash/"><img src="signflash-color-rounded.png" alt="signflash" width="200"/>
 <br>jbeskow.github.io/signflash</br>
 </a>
 
