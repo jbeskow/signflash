@@ -9,11 +9,11 @@
 
 🎬 titta på videon ✏️ skriv tecknet ✅ fortsätt tills du kan det!
 
-❓ fel svar ger alternativ till hjälp
+❓ fel svar ger hjälp (svarsalternativ)
 
 ⭐⭐⭐ tre rätt i rad utan hjälp - tecknet är "klart" 🎉
 
-📚 ordlistor i olika kategorier + exempelfraser
+📚 ordlistor i många kategorier + exempelfraser
 
 🐢 olika uppspelningshastigeter *(1x, 0.5x, 0.25x)*
 
