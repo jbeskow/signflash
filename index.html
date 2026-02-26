@@ -97,31 +97,6 @@ body {
 .settings-item:hover { background: rgba(255,255,255,0.05); }
 .settings-item.danger { color: #e74c3c; }
 
-.streak-setting {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  cursor: default;
-}
-
-.streak-setting:hover { background: none !important; }
-
-.streak-btn {
-  background: #0f3460;
-  border: none;
-  color: #e0e0e0;
-  width: 28px;
-  height: 28px;
-  border-radius: 4px;
-  font-size: 16px;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.streak-btn:hover { background: #1a4a7a; }
-
 #streak-value {
   min-width: 16px;
   text-align: center;
@@ -283,6 +258,12 @@ video {
   display: flex;
   flex-direction: column;
   gap: 6px;
+}
+
+.video-controls-top {
+  position: absolute;
+  top: 8px;
+  right: 8px;
 }
 
 .btn-icon {
@@ -714,13 +695,8 @@ video {
     <div class="settings-wrap">
       <button class="btn-settings" id="btn-settings" title="Meny"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="5" x2="17" y2="5"/><line x1="3" y1="10" x2="17" y2="10"/><line x1="3" y1="15" x2="17" y2="15"/></svg></button>
       <div class="settings-menu" id="settings-menu">
+        <button class="settings-item" id="btn-about">Om SignFlash...</button>
         <button class="settings-item" id="btn-show-stats">Statistik</button>
-        <div class="settings-item streak-setting">
-          Rätt i rad: <button class="streak-btn" id="streak-down">&#x2212;</button>
-          <span id="streak-value">3</span>
-          <button class="streak-btn" id="streak-up">+</button>
-        </div>
-        <button class="settings-item" id="btn-about">Om...</button>
         <button class="settings-item danger" id="btn-reset-progress">Nollställ framsteg</button>
       </div>
     </div>
@@ -750,6 +726,9 @@ video {
     <video id="sign-video" autoplay loop muted playsinline>
       <source id="video-source" src="" type="video/mp4">
     </video>
+    <div class="video-controls-top">
+      <button class="btn-icon" id="btn-info" title="Om SignFlash">&#x2139;</button>
+    </div>
     <div class="video-controls">
       <button class="btn-icon" id="btn-slow" title="Normal speed"><svg width="20" height="20" viewBox="0 0 431.347 431.347" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M60.177,103.279v-18h17.564v18H60.177z M195.34,310.388c-12.314-17.736-36.526-49.441-60.314-62.499c-21.169-11.621-34.072-3.648-39.881,2.138l12.705,12.751c2.254-2.247,5.523-4.211,12.662-1.757c14.05,4.827,33.989,23.833,54.706,52.146c14.808,20.237,24.831,38.142,28.947,47.45c-10.541,1.535-25.629-0.151-41.676-4.841c-22.353-6.534-42.723-17.648-55.888-30.492c-14.992-14.627-19.483-29.964-13.35-45.585l2.325-5.92l-4.805-4.168c-16.492-14.305-24.906-30.681-25.007-48.673l-0.41-73.931h-8.95C35.229,147.005,18,129.776,18,108.6c0-21.176,17.229-38.405,38.405-38.405h23.701c8.845,0,14.106,7.764,14.733,15.437c0.111,1.366,0.122,3.688,0.133,6.145c0.052,11.392,0.123,26.993,7.953,35.816l13.463-11.948c-3.324-3.745-3.389-17.903-3.416-23.949c-0.013-2.938-0.024-5.474-0.193-7.53c-1.487-18.226-15.533-31.97-32.673-31.97H56.405C25.304,52.195,0,77.498,0,108.6c0,28.055,20.59,51.392,47.451,55.695l0.314,56.742c0.12,21.315,9.339,41.285,26.74,58.08c-5.563,20.448,1.234,41.203,19.526,59.049c15.206,14.835,38.316,27.551,63.407,34.885c13.872,4.055,26.937,6.101,38.207,6.101c8.977,0,16.815-1.298,23.016-3.911l4.292-1.809l1.002-4.548c0.738-3.352,0.807-8.298-7.786-24.665C210.85,334.086,203.452,322.07,195.34,310.388z M317.151,276.567c-9.628-3.972-23.822-6.079-34.781-0.089c-6.743,3.686-11.061,9.793-12.485,17.663l17.711,3.208c0.447-2.467,1.498-4.032,3.406-5.076c4.243-2.319,12.354-1.926,19.286,0.934c23.851,9.838,49.97,47.685,58.715,65.336c-21.86-0.602-56.692-9.203-74.321-24.043c-6.542-5.507-9.923-11.23-10.051-17.011l-0.151-6.817l-6.603-1.7c-10.733-2.764-43.312-6.911-64.873,6.895l9.705,15.159c12.381-7.927,32.896-7.559,44.891-5.756c2.028,8.324,7.215,16.035,15.49,23.001c22.309,18.779,63.577,28.252,88.795,28.251c3.884,0,7.391-0.225,10.385-0.675l6.119-0.92l1.332-6.043c2.563-11.627-16.183-38.507-21.989-46.469C357.999,309.07,338.485,285.367,317.151,276.567z M429.473,219.554c-9.41,31.17-31.051,56.212-68.094,78.796l-9.369-15.369c26.69-16.272,44.311-33.632,54.342-53.771c-57.392,10.891-134.155,11.81-158.058,11.81c-55.169,0-109.044-6.086-155.803-17.602l-6.188-1.524l-0.618-6.342c-0.305-3.128-0.459-6.282-0.459-9.372c0-33.767,17.305-65.342,48.726-88.907c30.646-22.985,71.254-35.643,114.342-35.643c78.001,0,145.128,42.18,160.02,100.416c0.938,0.727,3.139,1.851,4.656,2.625C420.716,188.624,436.821,196.841,429.473,219.554z M123.917,211.837c1.899-16.608,8.691-33.886,19.649-49.651c10.612-15.269,24.015-27.674,37.469-34.829V111.79c-46.214,17.838-77.809,53.457-77.809,94.391c0,0.432,0.004,0.865,0.011,1.3C109.99,209.047,116.893,210.5,123.917,211.837z M239.294,222.964l-0.002-51.875l-48.962-28.27c-20.266,10.445-45.607,40.264-48.656,72.106C172.617,219.818,205.625,222.55,239.294,222.964z M297.551,127.06v-21.068c-15.683-4.175-32.345-6.362-49.257-6.362c-17.283,0-33.874,2.232-49.259,6.324v21.107l49.257,28.44L297.551,127.06z M360.417,217.54c-3.834-30.818-31.886-63.651-53.465-75.123l-49.66,28.672l0.002,51.894C289.097,222.728,326.513,221.115,360.417,217.54z M404.788,200.704c-5.304-2.707-11.904-6.075-13.749-13.548c-5.905-23.911-23.124-45.881-48.484-61.865c-8.34-5.256-17.405-9.761-27.004-13.463v14.795c25.711,13.885,58.102,50.938,62.744,88.798c12.668-1.684,24.548-3.685,35.09-6.04C413.619,205.41,411.041,203.895,404.788,200.704z"/></svg></button>
       <button class="btn-icon" id="btn-replay" title="Replay">&#x21bb;</button>
@@ -774,11 +753,19 @@ video {
     <h2>Om SignFlash</h2>
     <button class="btn-close-stats" id="btn-close-about">&times;</button>
   </div>
-  <div style="padding: 20px; line-height: 1.6; color: #ccc;">
-    <p>⚡ SignFlash - träna Svenskt Teckenspråk med flashcards!</p>
-    <p>&#9757; Videor från <a href="https://teckensprakslexikon.su.se" target="_blank" rel="noopener" style="color: #818cf8;">Teckenspråkslexikon</a>, Stockholms universitet.</p>
-    <p>💚 Vibekodat med kärlek av <a href="https://github.com/jbeskow" style="color: #818cf8;"">jbeskow</a></p>
-    <p><a href="https://github.com/jbeskow/signflash" target="_blank" rel="noopener" style="color: #818cf8;"><svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" style="vertical-align: text-bottom; margin-right: 4px;"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>GitHub</a></p>
+  <div style="padding: 20px; line-height: 1.8; color: #ccc; font-size: 15px;">
+    <p style="margin-bottom:12px;">⚡ Träna Svenskt Teckenspråk med flashcards!</p>
+    <p>🎬 titta på videon &nbsp;✏️ skriv tecknet &nbsp;✅ fortsätt tills du kan det!</p>
+    <p>❓ svarar du fel får du 4 alternativ att välja på</p>
+    <p>⭐⭐⭐ tre rätt i rad utan hjälp &nbsp;🎉 tecknet är "klart"</p>
+    <p style="margin-bottom:12px;">📚 ordlistor i olika kategorier, med exempelfraser</p>
+    <p>🐢 olika uppspelningshastigheter (1×, 0.5×, 0.25×)</p>
+    <p style="margin-bottom:12px;">🆓 helt fritt, ingen inloggning — framsteg sparas i browsern</p>
+    <p style="margin-bottom:12px;">💡 på mobiltelefon: välj <em>Lägg till på hemskärmen</em> för att köra som app</p>
+    <p>🎥 videor från <a href="https://teckensprakslexikon.su.se" target="_blank" rel="noopener" style="color:#818cf8;">Teckenspråkslexikon</a>, Stockholms universitet</p>
+    <p style="margin-top:16px;">💚 Vibekodat med kärlek av <a href="https://github.com/jbeskow" target="_blank" rel="noopener" style="color:#818cf8;">jbeskow</a> &nbsp;
+      <a href="https://github.com/jbeskow/signflash" target="_blank" rel="noopener" style="color:#818cf8;"><svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" style="vertical-align:text-bottom;margin-right:3px;"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>GitHub</a>
+    </p>
   </div>
 </div>
 
@@ -1446,39 +1433,7 @@ video {
     settingsMenu.classList.remove("open");
   });
 
-  // --- Streak setting ---
-
-  const streakValueEl = document.getElementById("streak-value");
-  const streakDown = document.getElementById("streak-down");
-  const streakUp = document.getElementById("streak-up");
-
-  streakValueEl.textContent = getMasteryStreak();
-
-  streakDown.addEventListener("click", (e) => {
-    e.stopPropagation();
-    const s = loadSettings();
-    const cur = s.masteryStreak || 3;
-    if (cur > 1) {
-      s.masteryStreak = cur - 1;
-      saveSettings(s);
-      streakValueEl.textContent = s.masteryStreak;
-      updateProgressDisplay();
-    }
-  });
-
-  streakUp.addEventListener("click", (e) => {
-    e.stopPropagation();
-    const s = loadSettings();
-    const cur = s.masteryStreak || 3;
-    if (cur < 10) {
-      s.masteryStreak = cur + 1;
-      saveSettings(s);
-      streakValueEl.textContent = s.masteryStreak;
-      updateProgressDisplay();
-    }
-  });
-
-  btnResetProgress.addEventListener("click", () => {
+btnResetProgress.addEventListener("click", () => {
     const label = currentMode === "phrase" ? "frasframsteg" : "alla framsteg";
     if (confirm("Nollställ " + label + "? Detta kan inte ångras.")) {
       localStorage.removeItem(getStorageKey());
@@ -1546,12 +1501,16 @@ video {
 
   const aboutOverlay = document.getElementById("about-overlay");
   const btnAbout = document.getElementById("btn-about");
+  const btnInfo = document.getElementById("btn-info");
   const btnCloseAbout = document.getElementById("btn-close-about");
 
-  btnAbout.addEventListener("click", () => {
+  function openAbout() {
     settingsMenu.classList.remove("open");
     aboutOverlay.classList.add("open");
-  });
+  }
+
+  btnAbout.addEventListener("click", openAbout);
+  btnInfo.addEventListener("click", openAbout);
 
   btnCloseAbout.addEventListener("click", () => {
     aboutOverlay.classList.remove("open");
