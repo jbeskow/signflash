@@ -7,7 +7,7 @@
 
 🎬 titta på videon ✏️ skriv tecknet ✅ fortsätt tills du kan det!
 
-❓ '?' eller fel svar ger alternativ
+❓ svarar du fel får du 4 alternativ
 
 ⭐⭐⭐ tre rätt i rad utan hjälp 🎉 tecknet är "klart"
 
@@ -19,6 +19,6 @@
 
 🎥 videor från [Teckenspråkslexikon](https://teckensprakslexikon.su.se), Stockholms universitet.
 
-💡 på mobiltelefon, välj spara på hemskärmen så funkar det som webapp (utan adressfält)
+💡 tips! på mobiltelefon, välj spara på hemskärmen så funkar det som webapp (utan adressfält)
 
 💚 Vibekodat med kärlek av [jbeskow](https://github.com/jbeskow)
