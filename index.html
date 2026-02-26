@@ -7,8 +7,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
 <title>SignFlash</title>
-<link rel="icon" href="signflash-color.png" type="image/png">
-<link rel="apple-touch-icon" href="signflash-color.png">
+<link rel="icon" href="icons/signflash-color.png" type="image/png">
+<link rel="apple-touch-icon" href="icons/signflash-color.png">
 <link rel="manifest" href="manifest.json">
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -785,8 +785,6 @@ video {
 </div>
 
 <script src="lists/all.js"></script>
-<script src="wordlist.js"></script>
-<script src="phrases_cur.js"></script>
 <script>
 (function() {
   "use strict";
@@ -794,13 +792,6 @@ video {
   const SETTINGS_KEY = "signflash_settings";
   const FEEDBACK_DELAY = 1800;
   const MASTERY_DELAY = 2500;
-
-  // --- Wordlist registry ---
-
-  // Fallback: if no wordlist files loaded WORDLISTS, use legacy WORDLIST
-  if (!window.WORDLISTS || window.WORDLISTS.length === 0) {
-    window.WORDLISTS = [{ id: "grunder1", name: "Grunder 1", words: WORDLIST }];
-  }
 
   const DEFAULT_WORDLIST = "allmant1";
   let savedWl = loadSettings().wordlistId;

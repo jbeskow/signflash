@@ -206,7 +206,7 @@ def main():
 
     script_dir = os.path.dirname(os.path.abspath(__file__))
     csv_path = args.csv or os.path.join(script_dir, "sign_data.csv")
-    freq_path = args.freq or os.path.join(script_dir, "stats_PAROLE.txt")
+    freq_path = args.freq or os.path.join(script_dir, "lists", "stats_PAROLE.txt")
 
     lists_dir = args.outdir or os.path.join(script_dir, "lists")
 
