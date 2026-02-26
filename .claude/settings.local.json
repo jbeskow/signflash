@@ -11,7 +11,24 @@
       "Bash(git commit:*)",
       "Bash(git push:*)",
       "Bash(open:*)",
-      "Bash(sips:*)"
+      "Bash(sips:*)",
+      "Bash(conda env list:*)",
+      "Bash(conda run:*)",
+      "Bash(ls:*)",
+      "Bash(__NEW_LINE_326b32b24b3783df__ conda run -n signflash python3 /Users/beskow/Library/CloudStorage/Dropbox/src/signflash/gen_wordlist.py --category mat --id mat --name \"Mat och dryck\" --phrases --no-verify)",
+      "Bash(__NEW_LINE_e106f0df598135db__ conda run -n signflash python3 /Users/beskow/Library/CloudStorage/Dropbox/src/signflash/gen_wordlist.py --category mat-och-dryck-drycker,mat-och-dryck-frukter,mat-och-dryck-gronsaker,mat-och-dryck-maltider,mat-och-dryck-matratter,mat-och-dryck-ingredienser,mat-och-dryck-brod,mat-och-dryck-fisk,mat-och-dryck-ovrigt --id mat --name \"Mat och dryck\" --split 60 --phrases --no-verify)",
+      "Bash(__NEW_LINE_e5914bd1a4bf8ce5__ rm /Users/beskow/Library/CloudStorage/Dropbox/src/signflash/lists/mat.js /Users/beskow/Library/CloudStorage/Dropbox/src/signflash/lists/djur.js)",
+      "Bash(identify:*)",
+      "Bash(git -C /Users/beskow/Library/CloudStorage/Dropbox/src/signflash pull --rebase)",
+      "Bash(git -C /Users/beskow/Library/CloudStorage/Dropbox/src/signflash stash)",
+      "Bash(git pull:*)",
+      "Bash(git stash pop:*)",
+      "Bash(git -C /Users/beskow/Library/CloudStorage/Dropbox/src/signflash status --short)",
+      "Bash(git -C /Users/beskow/Library/CloudStorage/Dropbox/src/signflash add signflash-color.png signflash-color-rounded.png icon-180.png icon-192.png icon-512.png README.md)",
+      "Bash(git -C /Users/beskow/Library/CloudStorage/Dropbox/src/signflash add icon-180.png icon-192.png icon-512.png)",
+      "Bash(git mv:*)",
+      "Bash(git rm:*)",
+      "Bash(git -C /Users/beskow/Library/CloudStorage/Dropbox/src/signflash rm sign_data_frames_info.csv)"
     ]
   }
 }
