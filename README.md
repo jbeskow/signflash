@@ -1,6 +1,7 @@
 # ⚡ SignFlash
 <a href="https://jbeskow.github.io/signflash/">
   <img src="signflash-color.png" alt="signflash" width="200"/>
+  jbeskow.github.io/signflash
 </a>
 
 ## Träna Svenskt Teckenspråk med flashcards!
