@@ -1,6 +1,6 @@
 # ⚡ SignFlash
 
-![SignFlash](signflash-color.png)
+<img src="signflash-color.png" width="200"/>
 
 Träna Svenskt Teckenspråk med flashcards!
 
