@@ -6,12 +6,19 @@
 ## Träna Svenskt Teckenspråk med flashcards!
 
 🎬 titta på videon ✏️ skriv tecknet ✅ fortsätt tills du kan det!
+
 ❓ '?' eller fel svar ger alternativ
+
 ⭐⭐⭐ tre rätt i rad utan hjälp 🎉 tecknet är "klart"
+
 📚 ordlistor i olika kategorier, med exempelfraser
+
 🐢 olika uppspelningshastigeter (1x, 0.5x, 0.25x)
+
 🆓 helt fritt och ingen inloggning, framsteg sparas i browsern
+
 🎥 videor från [Teckenspråkslexikon](https://teckensprakslexikon.su.se), Stockholms universitet.
+
 💡 på mobiltelefon, välj spara på hemskärmen så funkar det som webapp (utan adressfält)
 
 💚 Vibekodat med kärlek av [jbeskow](https://github.com/jbeskow)
