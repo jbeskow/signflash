@@ -2,7 +2,9 @@
 <a href="https://jbeskow.github.io/signflash/">
   <img src="signflash-color.png" alt="signflash" width="200"/>
 </a>
+
 ## Träna Svenskt Teckenspråk med flashcards!
+
 * 🎬 titta på videon ✏️ skriv tecknet ✅ fortsätt tills du kan det!
 * ❓ '?' eller fel svar ger alternativ
 * ⭐⭐⭐ tre rätt i rad utan hjälp 🎉 tecknet är "klart"
