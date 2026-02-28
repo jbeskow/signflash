@@ -1563,15 +1563,6 @@ btnResetProgress.addEventListener("click", () => {
     }
   });
 
-  // --- Pin body to visual viewport (fixes iOS keyboard scroll) ---
-  if (window.visualViewport) {
-    const pinBody = () => {
-      document.body.style.transform = `translateY(${window.visualViewport.offsetTop}px)`;
-    };
-    window.visualViewport.addEventListener("resize", pinBody);
-    window.visualViewport.addEventListener("scroll", pinBody);
-  }
-
   // --- Init ---
   renderWordlistDropdown();
   updateProgressDisplay();
