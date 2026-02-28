@@ -15,7 +15,7 @@
 
 📚 ordlistor i många kategorier + exempelfraser
 
-🐢 olika uppspelningshastigeter *(1x, 0.5x, 0.25x)*
+🐢 olika uppspelningshastigeter *(1x, 0.5x, 0.25x)* 🧑 ansiktszoom
 
 🆓 helt fritt. ingen inloggning. bara lokal lagring
 
