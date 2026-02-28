@@ -1093,6 +1093,7 @@ video {
 
     const correct = currentItem.word.toLowerCase();
     let accepted = [correct];
+    if (currentItem.aliases) accepted.push(...currentItem.aliases.map(a => a.toLowerCase()));
     if (currentMode === "phrase" && currentPhrase) {
       const bracketed = currentPhrase.phrase.match(/\[([^\]]+)\]/g);
       if (bracketed) {
