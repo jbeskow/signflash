@@ -693,6 +693,58 @@ video {
   .btn-alt { padding: 10px 10px; font-size: 13px; }
   .progress-stats { font-size: 12px; gap: 12px; }
 }
+
+.toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+.toggle-label { font-size: 15px; color: #e0e0e0; }
+
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 26px;
+  flex-shrink: 0;
+}
+
+.toggle-switch input { opacity: 0; width: 0; height: 0; }
+
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  inset: 0;
+  background: #0f3460;
+  border-radius: 26px;
+  transition: background 0.2s;
+}
+
+.toggle-slider::before {
+  content: "";
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #555;
+  left: 3px;
+  top: 3px;
+  transition: transform 0.2s, background 0.2s;
+}
+
+.toggle-switch input:checked + .toggle-slider { background: rgba(78,204,163,0.25); }
+.toggle-switch input:checked + .toggle-slider::before { transform: translateX(18px); background: #4ecca3; }
+
+.feedback-gloss {
+  font-size: 13px;
+  color: #888;
+  margin-top: 5px;
+  font-weight: 400;
+  letter-spacing: 0.3px;
+}
 </style>
 </head>
 <body>
@@ -736,6 +788,7 @@ video {
         <div class="settings-menu" id="settings-menu">
           <button class="settings-item" id="btn-about">Om SignFlash...</button>
           <button class="settings-item" id="btn-show-stats">Statistik</button>
+          <button class="settings-item" id="btn-advanced">Avancerat...</button>
           <button class="settings-item danger" id="btn-reset-progress">Nollställ framsteg</button>
         </div>
       </div>
@@ -788,6 +841,22 @@ video {
   <div class="stats-list" id="stats-list"></div>
 </div>
 
+<div class="stats-overlay" id="advanced-overlay">
+  <div class="stats-header">
+    <h2>Avancerat</h2>
+    <button class="btn-close-stats" id="btn-close-advanced">&times;</button>
+  </div>
+  <div>
+    <div class="toggle-row">
+      <span class="toggle-label">Visa glosa</span>
+      <label class="toggle-switch">
+        <input type="checkbox" id="toggle-show-gloss">
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+  </div>
+</div>
+
 <div class="completion-overlay" id="completion-overlay">
   <div class="completion-stars"><span>&#x2B50;</span><span>&#x2B50;</span><span>&#x2B50;</span></div>
   <div class="completion-title">Alla ord klara!</div>
@@ -831,7 +900,10 @@ video {
       if (!phrasesByWord[p.word]) phrasesByWord[p.word] = [];
       phrasesByWord[p.word].push(p);
     }
-    phraseWordList = Object.keys(phrasesByWord).map(w => ({ word: w }));
+    phraseWordList = Object.keys(phrasesByWord).map(w => {
+      const we = wl.words.find(e => e.word === w);
+      return { word: w, gloss: we && we.gloss };
+    });
     // NOTE: do NOT manipulate btnModePhrase here — called before it's declared
   }
 
@@ -860,6 +932,7 @@ video {
   }
   function saveSettings(s) { localStorage.setItem(SETTINGS_KEY, JSON.stringify(s)); }
   function getMasteryStreak() { return loadSettings().masteryStreak || 3; }
+  function getShowGloss() { return loadSettings().showGloss === true; }
 
   const video = document.getElementById("sign-video");
   const videoSource = document.getElementById("video-source");
@@ -1255,6 +1328,10 @@ video {
 
     feedbackDiv.className = "feedback";
 
+    const glossHtml = (getShowGloss() && currentItem.gloss)
+      ? '<div class="feedback-gloss">glosa: ' + escapeHtml(currentItem.gloss) + '</div>'
+      : '';
+
     if (isCorrect) {
       if (justMastered) {
         feedbackDiv.classList.add("correct", "mastered-celebration");
@@ -1269,11 +1346,12 @@ video {
         );
         html = '<div style="font-size:15px;margin-bottom:8px;font-weight:400;color:#ccc">' + filled + '</div>' + html;
       }
-      feedbackDiv.innerHTML = html;
+      feedbackDiv.innerHTML = html + glossHtml;
     } else {
       feedbackDiv.classList.add("incorrect");
       feedbackDiv.innerHTML = escapeHtml(correctWord)
-        + ' <span class="streak-stars">' + makeStars(0) + "</span>";
+        + ' <span class="streak-stars">' + makeStars(0) + "</span>"
+        + glossHtml;
     }
 
     setTimeout(scrollToTop, 100);
@@ -1315,7 +1393,7 @@ video {
     if (currentMode === "phrase") {
       const phrases = phrasesByWord[selected.word];
       currentPhrase = phrases[Math.floor(Math.random() * phrases.length)];
-      currentItem = { word: selected.word, video: currentPhrase.video };
+      currentItem = { word: selected.word, video: currentPhrase.video, gloss: selected.gloss };
       phraseTextDiv.textContent = blankPhrase(currentPhrase.phrase);
       phraseTextDiv.style.display = "block";
     } else {
@@ -1525,6 +1603,27 @@ btnResetProgress.addEventListener("click", () => {
 
   btnCloseStats.addEventListener("click", () => {
     statsOverlay.classList.remove("open");
+  });
+
+  // --- Advanced settings overlay ---
+
+  const advancedOverlay = document.getElementById("advanced-overlay");
+  const btnAdvanced = document.getElementById("btn-advanced");
+  const btnCloseAdvanced = document.getElementById("btn-close-advanced");
+  const toggleShowGloss = document.getElementById("toggle-show-gloss");
+
+  btnAdvanced.addEventListener("click", () => {
+    settingsMenu.classList.remove("open");
+    toggleShowGloss.checked = getShowGloss();
+    advancedOverlay.classList.add("open");
+  });
+
+  btnCloseAdvanced.addEventListener("click", () => {
+    advancedOverlay.classList.remove("open");
+  });
+
+  toggleShowGloss.addEventListener("change", () => {
+    const s = loadSettings(); s.showGloss = toggleShowGloss.checked; saveSettings(s);
   });
 
   // --- Event listeners ---

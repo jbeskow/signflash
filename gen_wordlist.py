@@ -41,6 +41,55 @@ import urllib.request
 import urllib.error
 
 
+def patch_gloss_all(lists_dir, sign_rows):
+    """Add gloss field to existing wordlist JS files using sign ID from video filename."""
+    # Build sign_id (5-digit) → glosa lookup
+    sign_id_to_gloss = {}
+    for row in sign_rows:
+        sid = str(row.get("id", "")).strip()
+        glosa = row.get("glosa", "").strip()
+        if sid and glosa:
+            sign_id_to_gloss[sid] = glosa
+
+    files = sorted(f for f in os.listdir(lists_dir)
+                   if f.endswith(".js") and f != "all.js")
+
+    def patch_line(line):
+        """Add gloss to a word entry line (not phrase entries, not already-glossed)."""
+        if 'gloss:' in line or 'phrase:' in line:
+            return line
+        m = re.search(r'-(\d{5})-tecken\.mp4"', line)
+        if not m:
+            return line
+        sign_id = m.group(1)
+        gloss = sign_id_to_gloss.get(sign_id, "")
+        if not gloss:
+            return line
+        gloss_json = json.dumps(gloss, ensure_ascii=False)
+        # Insert gloss before closing } on this line
+        return re.sub(
+            r'(video:\s*"[^"]+")(\s*\})',
+            rf'\1, gloss: {gloss_json}\2',
+            line
+        )
+
+    patched_count = 0
+    for fname in files:
+        path = os.path.join(lists_dir, fname)
+        with open(path, encoding="utf-8") as f:
+            lines = f.readlines()
+        new_lines = [patch_line(line) for line in lines]
+        if new_lines != lines:
+            with open(path, "w", encoding="utf-8") as f:
+                f.writelines(new_lines)
+            patched_count += 1
+            print(f"  Patched: {fname}")
+        else:
+            print(f"  Unchanged: {fname}")
+    print(f"Patched {patched_count}/{len(files)} files")
+    rebuild_all_js(lists_dir)
+
+
 def rebuild_all_js(lists_dir):
     """Concatenate all .js files in lists/ (except all.js) into all.js."""
     files = sorted(f for f in os.listdir(lists_dir)
@@ -162,7 +211,8 @@ def write_wordlist_js(output_path, wl_id, wl_name, entries, phrase_entries):
         f.write('  words: [\n')
         for i, entry in enumerate(entries):
             comma = "," if i < len(entries) - 1 else ""
-            f.write(f'    {{ word: {json.dumps(entry["word"], ensure_ascii=False)}, video: {json.dumps(entry["video"], ensure_ascii=False)} }}{comma}\n')
+            gloss_part = ', gloss: ' + json.dumps(entry["gloss"], ensure_ascii=False) if entry.get("gloss") else ""
+            f.write(f'    {{ word: {json.dumps(entry["word"], ensure_ascii=False)}, video: {json.dumps(entry["video"], ensure_ascii=False)}{gloss_part} }}{comma}\n')
         f.write('  ]')
         if phrase_entries:
             f.write(',\n  phrases: [\n')
@@ -202,6 +252,7 @@ def main():
     parser.add_argument("--phrases", action="store_true", help="Embed phrase data in output JS")
     parser.add_argument("--ai-bracket", action="store_true", help="Use Claude Haiku to bracket inflection forms (requires: pip install anthropic + ANTHROPIC_API_KEY)")
     parser.add_argument("--split", type=int, default=None, help="Split into balanced chunks of at most N words; generates {id}1.js, {id}2.js, ...")
+    parser.add_argument("--patch-gloss", action="store_true", help="Add gloss field to all existing wordlist JS files and rebuild all.js")
     args = parser.parse_args()
 
     script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -212,6 +263,16 @@ def main():
 
     if args.rebuild:
         rebuild_all_js(lists_dir)
+        return
+
+    if args.patch_gloss:
+        if not os.path.exists(csv_path):
+            print(f"Error: CSV file not found: {csv_path}", file=sys.stderr)
+            sys.exit(1)
+        print(f"Loading sign data: {csv_path}")
+        sign_rows = load_sign_data(csv_path)
+        print(f"Loaded {len(sign_rows)} entries")
+        patch_gloss_all(lists_dir, sign_rows)
         return
 
     if not os.path.exists(csv_path):
@@ -338,16 +399,17 @@ def main():
         row = word_lookup[word]
         filename = extract_video_filename(row["movie"])
 
+        gloss = row.get("glosa", "").strip()
         if not args.no_verify:
             print(f"  Checking: {word} -> {filename} ...", end=" ", flush=True)
             if check_video_url(filename):
                 print("OK")
-                entries.append({"word": word, "video": filename})
+                entries.append({"word": word, "video": filename, "gloss": gloss})
             else:
                 print("MISSING")
                 warnings.append(f"VIDEO MISSING: '{word}' -> {filename}")
         else:
-            entries.append({"word": word, "video": filename})
+            entries.append({"word": word, "video": filename, "gloss": gloss})
 
     # --- Build phrase entries ---
 
