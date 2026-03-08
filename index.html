@@ -1152,22 +1152,26 @@ video {
 
   // --- Answer checking ---
 
+  function normalizeAnswer(s) {
+    return s.trim().toLowerCase().replace(/^[\s.!?,;:]+|[\s.!?,;:]+$/g, '');
+  }
+
   let pendingIncorrect = false;
 
   function checkAnswer() {
     if (waitingForNext) return;
 
-    const answer = answerInput.value.trim().toLowerCase();
+    const answer = normalizeAnswer(answerInput.value);
     if (!answer) return;
 
-    const correct = currentItem.word.toLowerCase();
-    let accepted = [correct];
-    if (currentItem.aliases) accepted.push(...currentItem.aliases.map(a => a.toLowerCase()));
+    const correct = currentItem.word;
+    let accepted = [normalizeAnswer(correct)];
+    if (currentItem.aliases) accepted.push(...currentItem.aliases.map(a => normalizeAnswer(a)));
     if (currentMode === "phrase" && currentPhrase) {
       const bracketed = currentPhrase.phrase.match(/\[([^\]]+)\]/g);
       if (bracketed) {
         for (const b of bracketed) {
-          accepted.push(b.slice(1, -1).toLowerCase());
+          accepted.push(normalizeAnswer(b.slice(1, -1)));
         }
       }
     }
