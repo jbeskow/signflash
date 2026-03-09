@@ -399,6 +399,7 @@ video {
 }
 
 .fb-word.holding { background: rgba(255,255,255,0.18); border-radius: 3px; }
+.fb-variant-link { display: block; font-size: 13px; margin-top: 7px; opacity: 0.75; }
 
 .feedback-dismiss {
   position: absolute;
@@ -1416,19 +1417,29 @@ video {
     }
   }
 
+  function attachHoldEvents(span) {
+    span.addEventListener("pointerdown", (e) => {
+      e.preventDefault();
+      span.setPointerCapture(e.pointerId);
+      startWordHold(span);
+    });
+    span.addEventListener("pointerup", () => endWordHold(span));
+    span.addEventListener("pointercancel", () => endWordHold(span));
+  }
+
   function startWordHold(span) {
     if (holdActive) return;
     persistFeedback();
     holdVideos = JSON.parse(span.dataset.videos);
     holdSavedSrc = videoSource.src;
-    holdCycleIdx = 0;
+    holdCycleIdx = parseInt(span.dataset.startIdx || '0', 10);
     holdActive = true;
     span.classList.add("holding");
     if (holdVideos.length > 1) {
       video.loop = false;
       video.addEventListener("ended", advanceHoldVideo);
     }
-    videoSource.src = buildVideoSrc(holdVideos[0]);
+    videoSource.src = buildVideoSrc(holdVideos[holdCycleIdx]);
     video.load();
     video.playbackRate = slowRates[slowMode];
     video.play().catch(() => {});
@@ -1479,13 +1490,7 @@ video {
             span.className = "fb-word";
             span.textContent = part;
             span.dataset.videos = JSON.stringify(videos);
-            span.addEventListener("pointerdown", (e) => {
-              e.preventDefault();
-              span.setPointerCapture(e.pointerId);
-              startWordHold(span);
-            });
-            span.addEventListener("pointerup", () => endWordHold(span));
-            span.addEventListener("pointercancel", () => endWordHold(span));
+            attachHoldEvents(span);
             frag.appendChild(span);
             modified = true;
             continue;
@@ -1536,6 +1541,21 @@ video {
     const delay = justMastered ? MASTERY_DELAY : FEEDBACK_DELAY;
     feedbackTimer = setTimeout(nextRound, delay);
     wrapFeedbackWords(feedbackDiv);
+
+    // Variant link for ordinary words with multiple sign videos
+    if (currentMode !== "phrase") {
+      const wordKey = correctWord.trim().toLowerCase();
+      const variants = signVideoIndex[wordKey] || [];
+      if (variants.length > 1) {
+        const link = document.createElement("span");
+        link.className = "fb-word fb-variant-link";
+        link.textContent = "↻ " + (variants.length - 1) + " till";
+        link.dataset.videos = JSON.stringify(variants);
+        link.dataset.startIdx = "1";
+        attachHoldEvents(link);
+        feedbackDiv.appendChild(link);
+      }
+    }
   }
 
   function escapeHtml(s) {
