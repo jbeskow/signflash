@@ -1540,10 +1540,10 @@ video {
     setTimeout(scrollToTop, 100);
     const delay = justMastered ? MASTERY_DELAY : FEEDBACK_DELAY;
     feedbackTimer = setTimeout(nextRound, delay);
-    wrapFeedbackWords(feedbackDiv);
 
-    // Variant link for ordinary words with multiple sign videos
-    if (currentMode !== "phrase") {
+    if (currentMode === "phrase") {
+      wrapFeedbackWords(feedbackDiv);
+    } else {
       const wordKey = correctWord.trim().toLowerCase();
       const variants = signVideoIndex[wordKey] || [];
       if (variants.length > 1) {
