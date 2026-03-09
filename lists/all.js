@@ -1,5 +1,63 @@
 // Auto-generated — do not edit. Run: python3 gen_wordlist.py --rebuild
 
+// --- adjektiv1.js ---
+(window.WORDLISTS = window.WORDLISTS || []).push({
+  id: "adjektiv1",
+  name: "Adjektiv 1",
+  words: [
+    { word: "rolig", video: "rolig-02354-tecken.mp4" },
+    { word: "snäll", video: "snall-01090-tecken.mp4" },
+    { word: "tyst", video: "tyst-01867-tecken.mp4" },
+    { word: "hungrig", video: "hungrig-04868-tecken.mp4" },
+    { word: "nervös", video: "nervos-01072-tecken.mp4" },
+    { word: "enkel", video: "enkel-02927-tecken.mp4" },
+    { word: "tydlig", video: "tydlig-02933-tecken.mp4" },
+    { word: "färdig", video: "fardig-00310-tecken.mp4" },
+    { word: "nära", video: "nara-03145-tecken.mp4" },
+    { word: "ont", video: "ont-02569-tecken.mp4" },
+    { word: "mätt", video: "matt-02043-tecken.mp4" },
+    { word: "rik", video: "rik-03375-tecken.mp4" },
+    { word: "tråkig", video: "trakig-02465-tecken.mp4" },
+    { word: "kylig", video: "kylig-01506-tecken.mp4" },
+    { word: "sista", video: "sista-10568-tecken.mp4" },
+    { word: "låst", video: "lasa-02059-tecken.mp4" },
+    { word: "väldigt", video: "valdig-01912-tecken.mp4" },
+    { word: "lite", video: "lite-01701-tecken.mp4" },
+    { word: "mycket", video: "mycket-02801-tecken.mp4" },
+    { word: "riktigt", video: "riktig-00368-tecken.mp4" },
+    { word: "torr", video: "torr-05406-tecken.mp4" },
+    { word: "het", video: "het-04790-tecken.mp4" },
+    { word: "ljus", video: "ljus-00512-tecken.mp4" },
+    { word: "randig", video: "randig-00890-tecken.mp4" },
+    { word: "bred", video: "bred-01982-tecken.mp4" },
+    { word: "tjock", video: "tjock-02257-tecken.mp4" },
+    { word: "rak", video: "rak-12250-tecken.mp4" },
+    { word: "äkta", video: "akta-03961-tecken.mp4" },
+    { word: "rätt", video: "ratt-00387-tecken.mp4" },
+    { word: "lätt", video: "latt-00624-tecken.mp4" },
+    { word: "ilsken", video: "ilsken-01672-tecken.mp4" },
+    { word: "lugn", video: "lugn-05086-tecken.mp4" },
+    { word: "pigg", video: "pigg-01212-tecken.mp4" },
+    { word: "död", video: "dod-00202-tecken.mp4" },
+    { word: "mjuk", video: "mjuk-00777-tecken.mp4" },
+    { word: "ledig", video: "ledig-03088-tecken.mp4" },
+    { word: "billig", video: "billig-03377-tecken.mp4" },
+    { word: "hög", video: "hog-00247-tecken.mp4" },
+    { word: "blond", video: "blond-10905-tecken.mp4" },
+    { word: "slät", video: "slat-17963-tecken.mp4" },
+    { word: "full", video: "full-00341-tecken.mp4" },
+    { word: "säker", video: "saker-00388-tecken.mp4" },
+    { word: "vild", video: "vild-01993-tecken.mp4" },
+    { word: "grund", video: "grund-00473-tecken.mp4" },
+    { word: "svår", video: "svar-02293-tecken.mp4" },
+    { word: "klar", video: "klar-01058-tecken.mp4" },
+    { word: "fri", video: "fri-01034-tecken.mp4" },
+    { word: "smal", video: "smal-00538-tecken.mp4" },
+    { word: "ful", video: "ful-03238-tecken.mp4" },
+    { word: "lat", video: "lat-00981-tecken.mp4" }
+  ]
+});
+
 // --- allmant1.js ---
 (window.WORDLISTS = window.WORDLISTS || []).push({
   id: "allmant1",
@@ -477,7 +535,12 @@
     { word: "helger", video: "helger-17735-tecken.mp4" },
     { word: "kvartal", video: "kvartal-04461-tecken.mp4" },
     { word: "lördagar", video: "lordagar-17717-tecken.mp4", gloss: "LÖRDAG.FL" },
-    { word: "söndagar", video: "sondagar-17726-tecken.mp4", gloss: "SÖNDAG.FL" }
+    { word: "söndagar", video: "sondagar-17726-tecken.mp4", gloss: "SÖNDAG.FL" },
+    { word: "jul", video: "jul-06912-tecken.mp4", gloss: "JUL" },
+    { word: "semester", video: "semester-00676-tecken.mp4", gloss: "SEMESTER" },
+    { word: "idag", video: "i-dag-04485-tecken.mp4", gloss: "I@b^DAG" },
+    { word: "imorgon", video: "i-morgon-02690-tecken.mp4", gloss: "DAG-FRAMTID+EN" },
+    { word: "ikväll", video: "i-kvall-10033-tecken.mp4" }
   ],
   phrases: [
     { word: "år", phrase: "På kongressen i Milano 1880 bestämde man att teckenspråket skulle förbjudas.", video: "ar-02861-fras-1.mp4" },
@@ -1675,7 +1738,17 @@ window.ALL_SIGN_VIDEOS={"tant":["tant-02648-tecken.mp4","tant-14940-tecken.mp4"]
     { word: "verkligen", video: "verkligen-03960-tecken.mp4" },
     { word: "dagar", video: "dagar-14989-tecken.mp4" },
     { word: "snart", video: "snart-03171-tecken.mp4" },
-    { word: "varför", video: "varfor-00561-tecken.mp4" }
+    { word: "varför", video: "varfor-00561-tecken.mp4" },
+    { word: "det", video: "den-03690-tecken.mp4" },
+    { word: "dig", video: "dig-03639-tecken.mp4", gloss: "OBJPRO" },
+    { word: "din", video: "din-00275-tecken.mp4", gloss: "POSS" },
+    { word: "ditt", video: "din-00275-tecken.mp4", gloss: "POSS" },
+    { word: "er", video: "er-15857-tecken.mp4" },
+    { word: "hen", video: "hen-20131-tecken.mp4", gloss: "PEK" },
+    { word: "mitt", video: "min-00187-tecken.mp4", gloss: "POSS1" },
+    { word: "vilka", video: "vilka-05496-tecken.mp4" },
+    { word: "vilken", video: "vilken-00124-tecken.mp4", gloss: "VILKEN" },
+    { word: "våra", video: "var-00186-tecken.mp4", gloss: "POSS1.FL" }
   ]
 });
 
@@ -2224,6 +2297,43 @@ window.ALL_SIGN_VIDEOS={"tant":["tant-02648-tecken.mp4","tant-14940-tecken.mp4"]
     { word: "acceptera", phrase: "Du får [acceptera] att man har olika åsikter.", video: "acceptera-09672-fras-2.mp4" },
     { word: "acceptera", phrase: "Okej, jag går med på det. Men på ett villkor och det är att jag får betala mindre.", video: "acceptera-09672-fras-3.mp4" },
     { word: "acceptera", phrase: "Varför kan du inte [acceptera] att vi två är tillsammans?", video: "acceptera-09672-fras-4.mp4" }
+  ]
+});
+
+// --- verb3.js ---
+(window.WORDLISTS = window.WORDLISTS || []).push({
+  id: "verb3",
+  name: "Verb 3",
+  words: [
+    { word: "älska", video: "alska-06012-tecken.mp4" },
+    { word: "tycka", video: "tycka-00182-tecken.mp4" },
+    { word: "heta", video: "heta-02892-tecken.mp4" },
+    { word: "bruka", video: "bruka-02712-tecken.mp4" },
+    { word: "mena", video: "mena-02993-tecken.mp4" },
+    { word: "kosta", video: "kosta-01281-tecken.mp4" },
+    { word: "skratta", video: "skratta-01704-tecken.mp4" },
+    { word: "störa", video: "stora-00353-tecken.mp4" },
+    { word: "laga", video: "laga-02064-tecken.mp4" },
+    { word: "simma", video: "simma-00666-tecken.mp4" },
+    { word: "promenera", video: "promenera-04240-tecken.mp4" },
+    { word: "städa", video: "stada-00446-tecken.mp4" },
+    { word: "teckna", video: "teckna-00998-tecken.mp4" },
+    { word: "starta", video: "starta-03854-tecken.mp4" },
+    { word: "skynda", video: "skynda-02244-tecken.mp4" },
+    { word: "skrika", video: "skrika-04424-tecken.mp4" },
+    { word: "stänga", video: "stangd-10148-tecken.mp4" },
+    { word: "öppna", video: "oppna-00292-tecken.mp4" },
+    { word: "väga", video: "vaga-12239-tecken.mp4" },
+    { word: "samla", video: "samla-01716-tecken.mp4" },
+    { word: "ursäkta", video: "ursakta-10234-tecken.mp4" },
+    { word: "lyckas", video: "lyckas-01553-tecken.mp4" },
+    { word: "glömma", video: "glomma-00824-tecken.mp4" },
+    { word: "ses", video: "ses-19004-tecken.mp4" },
+    { word: "avsky", video: "avsky-00819-tecken.mp4" },
+    { word: "beställa", video: "bestalla-02739-tecken.mp4" },
+    { word: "byta", video: "byta-03115-tecken.mp4" },
+    { word: "fixa", video: "fixa-04602-tecken.mp4" },
+    { word: "föredra", video: "foredra-02616-tecken.mp4" }
   ]
 });
 

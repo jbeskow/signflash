@@ -51,7 +51,12 @@
     { word: "helger", video: "helger-17735-tecken.mp4" },
     { word: "kvartal", video: "kvartal-04461-tecken.mp4" },
     { word: "lördagar", video: "lordagar-17717-tecken.mp4", gloss: "LÖRDAG.FL" },
-    { word: "söndagar", video: "sondagar-17726-tecken.mp4", gloss: "SÖNDAG.FL" }
+    { word: "söndagar", video: "sondagar-17726-tecken.mp4", gloss: "SÖNDAG.FL" },
+    { word: "jul", video: "jul-06912-tecken.mp4", gloss: "JUL" },
+    { word: "semester", video: "semester-00676-tecken.mp4", gloss: "SEMESTER" },
+    { word: "idag", video: "i-dag-04485-tecken.mp4", gloss: "I@b^DAG" },
+    { word: "imorgon", video: "i-morgon-02690-tecken.mp4", gloss: "DAG-FRAMTID+EN" },
+    { word: "ikväll", video: "i-kvall-10033-tecken.mp4" }
   ],
   phrases: [
     { word: "år", phrase: "På kongressen i Milano 1880 bestämde man att teckenspråket skulle förbjudas.", video: "ar-02861-fras-1.mp4" },

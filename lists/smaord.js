@@ -81,6 +81,16 @@
     { word: "verkligen", video: "verkligen-03960-tecken.mp4" },
     { word: "dagar", video: "dagar-14989-tecken.mp4" },
     { word: "snart", video: "snart-03171-tecken.mp4" },
-    { word: "varför", video: "varfor-00561-tecken.mp4" }
+    { word: "varför", video: "varfor-00561-tecken.mp4" },
+    { word: "det", video: "den-03690-tecken.mp4" },
+    { word: "dig", video: "dig-03639-tecken.mp4", gloss: "OBJPRO" },
+    { word: "din", video: "din-00275-tecken.mp4", gloss: "POSS" },
+    { word: "ditt", video: "din-00275-tecken.mp4", gloss: "POSS" },
+    { word: "er", video: "er-15857-tecken.mp4" },
+    { word: "hen", video: "hen-20131-tecken.mp4", gloss: "PEK" },
+    { word: "mitt", video: "min-00187-tecken.mp4", gloss: "POSS1" },
+    { word: "vilka", video: "vilka-05496-tecken.mp4" },
+    { word: "vilken", video: "vilken-00124-tecken.mp4", gloss: "VILKEN" },
+    { word: "våra", video: "var-00186-tecken.mp4", gloss: "POSS1.FL" }
   ]
 });
