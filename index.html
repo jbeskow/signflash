@@ -896,6 +896,7 @@ video {
 
 <script src="lists/all.js"></script>
 <script src="lists/forms.js"></script>
+<script src="lists/signs.js"></script>
 <script>
 (function() {
   "use strict";
@@ -988,10 +989,16 @@ video {
   let waitingForNext = false;
   let feedbackTimer = null;
 
-  // Pre-build word → [video filenames] index across all loaded wordlists,
-  // then expand with inflected forms from FORM_TO_BASE (lists/forms.js).
+  // Build word → [video filenames] index.
+  // Seed from ALL_SIGN_VIDEOS (all phrase-context words from the full CSV),
+  // overlay curated wordlist entries, then expand inflected forms via FORM_TO_BASE.
   const signVideoIndex = (() => {
     const idx = {};
+    // 1. All phrase-context signs (covers hämta, flyga, kaffe, etc.)
+    for (const [word, videos] of Object.entries(window.ALL_SIGN_VIDEOS || {})) {
+      idx[word] = videos.slice();
+    }
+    // 2. Wordlist entries (add any not already present)
     for (const wl of window.WORDLISTS) {
       for (const entry of wl.words) {
         const key = entry.word.trim().toLowerCase();
@@ -999,7 +1006,7 @@ video {
         if (entry.video && !idx[key].includes(entry.video)) idx[key].push(entry.video);
       }
     }
-    // Add inflected forms: "flyger" → same videos as "flyga"
+    // 3. Inflected forms: "flyger" → "flyga", "gick" → "gå", etc.
     const ftb = window.FORM_TO_BASE || {};
     for (const [form, base] of Object.entries(ftb)) {
       if (idx[base] && !idx[form]) idx[form] = idx[base];
