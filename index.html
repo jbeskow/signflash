@@ -383,7 +383,37 @@ video {
   font-size: 18px;
   font-weight: 600;
   display: none;
+  position: relative;
 }
+
+.fb-word {
+  cursor: pointer;
+  border-radius: 3px;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-decoration-color: rgba(255,255,255,0.35);
+  text-underline-offset: 3px;
+  -webkit-user-select: none;
+  user-select: none;
+  touch-action: none;
+}
+
+.fb-word.holding { background: rgba(255,255,255,0.18); border-radius: 3px; }
+
+.feedback-dismiss {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.4);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 2px 5px;
+  border-radius: 4px;
+}
+.feedback-dismiss:hover { color: rgba(255,255,255,0.8); }
 
 .feedback.correct {
   display: block;
@@ -955,6 +985,26 @@ video {
   let recentWords = [];
   let usedAlternatives = false;
   let waitingForNext = false;
+  let feedbackTimer = null;
+
+  // Pre-build word → [video filenames] index across all loaded wordlists
+  const signVideoIndex = (() => {
+    const idx = {};
+    for (const wl of window.WORDLISTS) {
+      for (const entry of wl.words) {
+        const key = entry.word.trim().toLowerCase();
+        if (!idx[key]) idx[key] = [];
+        if (entry.video && !idx[key].includes(entry.video)) idx[key].push(entry.video);
+      }
+    }
+    return idx;
+  })();
+
+  // --- Hold-to-preview state ---
+  let holdActive = false;
+  let holdVideos = [];
+  let holdCycleIdx = 0;
+  let holdSavedSrc = null;
   let currentMode = "word";
 
   // --- Mode & storage keys ---
@@ -1323,6 +1373,113 @@ video {
     return stars;
   }
 
+  // --- Feedback word hold-to-preview ---
+
+  function buildVideoSrc(filename) {
+    const m = filename.match(/-(\d{5})-/);
+    const prefix = m ? m[1].substring(0, 2) : "00";
+    return "https://teckensprakslexikon.su.se/movies/" + prefix + "/" + filename;
+  }
+
+  function advanceHoldVideo() {
+    if (!holdActive) return;
+    holdCycleIdx = (holdCycleIdx + 1) % holdVideos.length;
+    videoSource.src = buildVideoSrc(holdVideos[holdCycleIdx]);
+    video.load();
+    video.playbackRate = slowRates[slowMode];
+    video.play().catch(() => {});
+  }
+
+  function startWordHold(span) {
+    if (holdActive) return;
+    holdVideos = JSON.parse(span.dataset.videos);
+    holdSavedSrc = videoSource.src;
+    holdCycleIdx = 0;
+    holdActive = true;
+    clearTimeout(feedbackTimer);
+    feedbackTimer = null;
+    span.classList.add("holding");
+    if (holdVideos.length > 1) {
+      video.loop = false;
+      video.addEventListener("ended", advanceHoldVideo);
+    }
+    videoSource.src = buildVideoSrc(holdVideos[0]);
+    video.load();
+    video.playbackRate = slowRates[slowMode];
+    video.play().catch(() => {});
+    // Show dismiss ×
+    if (!feedbackDiv.querySelector(".feedback-dismiss")) {
+      const btn = document.createElement("button");
+      btn.className = "feedback-dismiss";
+      btn.textContent = "×";
+      btn.addEventListener("click", (e) => { e.stopPropagation(); nextRound(); });
+      feedbackDiv.appendChild(btn);
+    }
+  }
+
+  function endWordHold(span) {
+    if (!holdActive) return;
+    holdActive = false;
+    span.classList.remove("holding");
+    video.removeEventListener("ended", advanceHoldVideo);
+    if (holdVideos.length > 1) video.loop = true;
+    holdVideos = [];
+    if (holdSavedSrc) {
+      videoSource.src = holdSavedSrc;
+      video.load();
+      video.playbackRate = slowRates[slowMode];
+      video.play().catch(() => {});
+      holdSavedSrc = null;
+    }
+  }
+
+  function wrapFeedbackWords(container) {
+    const WORD_RE = /([a-zA-ZäöåÄÖÅéèêàüÜïÏ'-]{2,})/;
+    const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT);
+    const textNodes = [];
+    let n;
+    while ((n = walker.nextNode())) {
+      let el = n.parentElement;
+      let skip = false;
+      while (el && el !== container) {
+        if (el.classList.contains("fb-word") || el.classList.contains("feedback-dismiss") || el.tagName === "BUTTON") {
+          skip = true; break;
+        }
+        el = el.parentElement;
+      }
+      if (!skip) textNodes.push(n);
+    }
+    for (const textNode of textNodes) {
+      const parts = textNode.textContent.split(WORD_RE);
+      if (parts.length <= 1) continue;
+      let modified = false;
+      const frag = document.createDocumentFragment();
+      for (const part of parts) {
+        if (WORD_RE.test(part)) {
+          const videos = signVideoIndex[part.toLowerCase()] || [];
+          if (videos.length > 0) {
+            const span = document.createElement("span");
+            span.className = "fb-word";
+            span.textContent = part;
+            span.dataset.videos = JSON.stringify(videos);
+            span.addEventListener("pointerdown", (e) => {
+              e.preventDefault();
+              span.setPointerCapture(e.pointerId);
+              startWordHold(span);
+            });
+            span.addEventListener("pointerup", () => endWordHold(span));
+            span.addEventListener("pointercancel", () => endWordHold(span));
+            frag.appendChild(span);
+            modified = true;
+            continue;
+          }
+        }
+        frag.appendChild(document.createTextNode(part));
+      }
+      if (modified) textNode.parentNode.replaceChild(frag, textNode);
+    }
+  }
+
   function showFeedback(isCorrect, correctWord, streak, justMastered) {
     waitingForNext = true;
     answerInput.blur();
@@ -1360,7 +1517,8 @@ video {
 
     setTimeout(scrollToTop, 100);
     const delay = justMastered ? MASTERY_DELAY : FEEDBACK_DELAY;
-    setTimeout(nextRound, delay);
+    feedbackTimer = setTimeout(nextRound, delay);
+    wrapFeedbackWords(feedbackDiv);
   }
 
   function escapeHtml(s) {
@@ -1372,6 +1530,15 @@ video {
   // --- Round management ---
 
   function nextRound() {
+    clearTimeout(feedbackTimer);
+    feedbackTimer = null;
+    if (holdActive) {
+      holdActive = false;
+      video.removeEventListener("ended", advanceHoldVideo);
+      video.loop = true;
+      holdVideos = [];
+      holdSavedSrc = null;
+    }
     waitingForNext = false;
     usedAlternatives = false;
     pendingIncorrect = false;
