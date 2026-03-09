@@ -895,6 +895,7 @@ video {
 </div>
 
 <script src="lists/all.js"></script>
+<script src="lists/forms.js"></script>
 <script>
 (function() {
   "use strict";
@@ -987,7 +988,8 @@ video {
   let waitingForNext = false;
   let feedbackTimer = null;
 
-  // Pre-build word → [video filenames] index across all loaded wordlists
+  // Pre-build word → [video filenames] index across all loaded wordlists,
+  // then expand with inflected forms from FORM_TO_BASE (lists/forms.js).
   const signVideoIndex = (() => {
     const idx = {};
     for (const wl of window.WORDLISTS) {
@@ -996,6 +998,11 @@ video {
         if (!idx[key]) idx[key] = [];
         if (entry.video && !idx[key].includes(entry.video)) idx[key].push(entry.video);
       }
+    }
+    // Add inflected forms: "flyger" → same videos as "flyga"
+    const ftb = window.FORM_TO_BASE || {};
+    for (const [form, base] of Object.entries(ftb)) {
+      if (idx[base] && !idx[form]) idx[form] = idx[base];
     }
     return idx;
   })();
