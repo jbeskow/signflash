@@ -390,8 +390,8 @@ video {
   cursor: pointer;
   border-radius: 3px;
   text-decoration: underline;
-  text-decoration-style: dotted;
-  text-decoration-color: rgba(255,255,255,0.35);
+  text-decoration-color: rgba(255,255,255,0.75);
+  text-decoration-thickness: 2px;
   text-underline-offset: 3px;
   -webkit-user-select: none;
   user-select: none;
@@ -1397,14 +1397,25 @@ video {
     video.play().catch(() => {});
   }
 
+  function persistFeedback() {
+    clearTimeout(feedbackTimer);
+    feedbackTimer = null;
+    if (!feedbackDiv.querySelector(".feedback-dismiss")) {
+      const btn = document.createElement("button");
+      btn.className = "feedback-dismiss";
+      btn.textContent = "×";
+      btn.addEventListener("click", (e) => { e.stopPropagation(); nextRound(); });
+      feedbackDiv.appendChild(btn);
+    }
+  }
+
   function startWordHold(span) {
     if (holdActive) return;
+    persistFeedback();
     holdVideos = JSON.parse(span.dataset.videos);
     holdSavedSrc = videoSource.src;
     holdCycleIdx = 0;
     holdActive = true;
-    clearTimeout(feedbackTimer);
-    feedbackTimer = null;
     span.classList.add("holding");
     if (holdVideos.length > 1) {
       video.loop = false;
@@ -1414,14 +1425,6 @@ video {
     video.load();
     video.playbackRate = slowRates[slowMode];
     video.play().catch(() => {});
-    // Show dismiss ×
-    if (!feedbackDiv.querySelector(".feedback-dismiss")) {
-      const btn = document.createElement("button");
-      btn.className = "feedback-dismiss";
-      btn.textContent = "×";
-      btn.addEventListener("click", (e) => { e.stopPropagation(); nextRound(); });
-      feedbackDiv.appendChild(btn);
-    }
   }
 
   function endWordHold(span) {
@@ -1805,6 +1808,8 @@ btnResetProgress.addEventListener("click", () => {
   });
 
   // --- Event listeners ---
+
+  feedbackDiv.addEventListener("pointerdown", () => { if (waitingForNext) persistFeedback(); });
 
   btnSubmit.addEventListener("click", checkAnswer);
   btnShowAlt.addEventListener("click", showAlternatives);
