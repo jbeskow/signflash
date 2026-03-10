@@ -54,17 +54,21 @@ body {
 }
 
 .btn-settings {
-  background: none;
+  background: rgba(0,0,0,0.25);
   border: none;
-  color: #888;
+  color: rgba(255,255,255,0.8);
   cursor: pointer;
-  padding: 4px;
-  border-radius: 4px;
+  padding: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(4px);
 }
 
-.btn-settings:hover { color: #ccc; background: rgba(255,255,255,0.05); }
+.btn-settings:hover { color: #fff; background: rgba(0,0,0,0.5); }
 
 .settings-menu {
   display: none;
@@ -305,7 +309,7 @@ video {
   display: none;
   font-size: 12px;
   color: rgba(255,255,255,0.8);
-  background: rgba(0,0,0,0.45);
+  background: rgba(0,0,0,0.25);
   border-radius: 4px;
   padding: 3px 8px;
   cursor: pointer;
@@ -315,9 +319,10 @@ video {
   text-decoration: underline;
   text-decoration-color: rgba(255,255,255,0.45);
   text-underline-offset: 2px;
+  backdrop-filter: blur(4px);
 }
 .video-variant-btn.active { display: block; }
-.video-variant-btn.holding { background: rgba(255,255,255,0.18); color: #fff; }
+.video-variant-btn.holding { background: rgba(0,0,0,0.5); color: #fff; }
 
 .video-container.face-zoom video {
   transform: scale(2);
