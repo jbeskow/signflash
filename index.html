@@ -1580,7 +1580,7 @@ video {
     const delay = justMastered ? MASTERY_DELAY : FEEDBACK_DELAY;
     feedbackTimer = setTimeout(nextRound, delay);
 
-    if (currentMode === "phrase") {
+    if (currentMode === "phrase" || correctWord.includes(" ")) {
       wrapFeedbackWords(feedbackDiv);
     } else {
       const wordKey = correctWord.trim().toLowerCase();
