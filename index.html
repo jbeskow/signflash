@@ -1293,6 +1293,10 @@ video {
     return s.trim().toLowerCase().replace(/^[\s.!?,;:]+|[\s.!?,;:]+$/g, '');
   }
 
+  function getBase(word) {
+    return (window.FORM_TO_BASE || {})[word] || word;
+  }
+
   let pendingIncorrect = false;
 
   function checkAnswer() {
@@ -1312,7 +1316,8 @@ video {
         }
       }
     }
-    const isCorrect = accepted.includes(answer);
+    const isCorrect = accepted.includes(answer) ||
+      (!correct.includes(" ") && getBase(answer) === getBase(normalizeAnswer(correct)));
 
     if (isCorrect) {
       const progress = loadProgress();
