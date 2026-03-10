@@ -1615,17 +1615,6 @@ video {
 
     if (currentMode === "phrase" || correctWord.includes(" ")) {
       wrapFeedbackWords(feedbackDiv);
-    } else {
-      const wordKey = correctWord.trim().toLowerCase();
-      const variants = signVideoIndex[wordKey] || [];
-      if (variants.length > 1) {
-        const curIdx = variants.indexOf(currentItem.video);
-        const startIdx = curIdx >= 0 ? (curIdx + 1) % variants.length : 1;
-        videoVariantBtn.textContent = "↻ " + (variants.length - 1) + " till";
-        videoVariantBtn.dataset.videos = JSON.stringify(variants);
-        videoVariantBtn.dataset.startIdx = String(startIdx);
-        videoVariantBtn.classList.add("active");
-      }
     }
   }
 
@@ -1696,6 +1685,19 @@ video {
     video.load();
     video.playbackRate = slowRates[slowMode];
     video.play().catch(() => {});
+
+    if (currentMode !== "phrase" && !currentItem.word.includes(" ")) {
+      const wordKey = currentItem.word.trim().toLowerCase();
+      const variants = signVideoIndex[wordKey] || [];
+      if (variants.length > 1) {
+        const curIdx = variants.indexOf(currentItem.video);
+        const startIdx = curIdx >= 0 ? (curIdx + 1) % variants.length : 1;
+        videoVariantBtn.textContent = "↻ " + (variants.length - 1) + " till";
+        videoVariantBtn.dataset.videos = JSON.stringify(variants);
+        videoVariantBtn.dataset.startIdx = String(startIdx);
+        videoVariantBtn.classList.add("active");
+      }
+    }
 
     scrollToTop();
     focusInput();
