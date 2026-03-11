@@ -25,7 +25,6 @@
     { word: "Mamma nöjesläste tidningen.", video: "tidning-05203-fras-1.mp4" },
     { word: "Mikromat är bekvämt.", video: "enkelt-11877-fras-3.mp4" },
     { word: "När slutar kursen?", video: "kurs-01259-fras-1.mp4" },
-    { word: "Sluta fåna dig!", video: "bete-sig-fanigt-01292-fras-3.mp4" },
     { word: "Snart börjar finalen.", video: "final-00251-fras-1.mp4" },
     { word: "Snart börjar fotbollsfinalen.", video: "final-00251-fras-2.mp4" },
     { word: "Stör mig inte!", video: "stora-00353-fras-3.mp4" },

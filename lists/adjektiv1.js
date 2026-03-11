@@ -15,7 +15,7 @@
     { word: "mätt", video: "matt-02043-tecken.mp4", gloss: "MÄTT(G)" },
     { word: "rik", video: "rik-03375-tecken.mp4", gloss: "RIK" },
     { word: "tråkig", video: "trakig-02465-tecken.mp4" },
-    { word: "kylig", video: "kylig-01506-tecken.mp4", gloss: "KYLIG" },
+    { word: "kylig", video: "kylig-05690-tecken.mp4", gloss: "KYLIG" },
     { word: "sista", video: "sista-10568-tecken.mp4", gloss: "SISTA" },
     { word: "låst", video: "lasa-02059-tecken.mp4", gloss: "LÅSA(ea)" },
     { word: "väldigt", video: "valdig-01912-tecken.mp4" },
